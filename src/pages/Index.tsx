@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/hooks/use-toast';
 
 // Model coefficients and parameters for easy editing
@@ -86,6 +87,23 @@ const Index = () => {
       setErrors(prev => ({ ...prev, [key]: error }));
     }
   }, [validateField]);
+
+  const handleSliderChange = useCallback((key: keyof InputData, value: number[]) => {
+    handleInputChange(key, value[0].toString());
+  }, [handleInputChange]);
+
+  const getSliderRange = (key: keyof InputData) => {
+    switch (key) {
+      case 'participantCh4GMD':
+        return { min: 0, max: 10, step: 0.01 };
+      case 'ageAtMRI':
+        return { min: 0, max: 120, step: 1 };
+      case 'totalIntracranialVolume':
+        return { min: 0, max: 2000000, step: 1000 };
+      default:
+        return { min: 0, max: 100, step: 1 };
+    }
+  };
 
   const isValid = useMemo(() => {
     const hasAllFields = Object.values(inputs).every(value => value.trim() !== '');
@@ -189,17 +207,37 @@ const Index = () => {
               <CardTitle>Inputs</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label htmlFor="participantCh4GMD">Participant Ch4 GMD</Label>
-                <Input
-                  id="participantCh4GMD"
-                  type="number"
-                  step="any"
-                  value={inputs.participantCh4GMD}
-                  onChange={(e) => handleInputChange('participantCh4GMD', e.target.value)}
-                  className={errors.participantCh4GMD ? 'border-destructive' : ''}
-                  aria-describedby="participantCh4GMD-error"
-                />
+                <div className="space-y-3">
+                  <Input
+                    id="participantCh4GMD"
+                    type="number"
+                    step="any"
+                    value={inputs.participantCh4GMD}
+                    onChange={(e) => handleInputChange('participantCh4GMD', e.target.value)}
+                    className={errors.participantCh4GMD ? 'border-destructive' : ''}
+                    aria-describedby="participantCh4GMD-error"
+                    placeholder="0.00"
+                  />
+                  {inputs.participantCh4GMD && !isNaN(Number(inputs.participantCh4GMD)) && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>0</span>
+                        <span>{inputs.participantCh4GMD}</span>
+                        <span>10</span>
+                      </div>
+                      <Slider
+                        value={[Number(inputs.participantCh4GMD) || 0]}
+                        onValueChange={(value) => handleSliderChange('participantCh4GMD', value)}
+                        min={0}
+                        max={10}
+                        step={0.01}
+                        className="w-full"
+                      />
+                    </div>
+                  )}
+                </div>
                 {errors.participantCh4GMD && (
                   <p id="participantCh4GMD-error" className="text-sm text-destructive" role="alert">
                     {errors.participantCh4GMD}
@@ -207,17 +245,37 @@ const Index = () => {
                 )}
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label htmlFor="ageAtMRI">Age at MRI (years)</Label>
-                <Input
-                  id="ageAtMRI"
-                  type="number"
-                  step="any"
-                  value={inputs.ageAtMRI}
-                  onChange={(e) => handleInputChange('ageAtMRI', e.target.value)}
-                  className={errors.ageAtMRI ? 'border-destructive' : ''}
-                  aria-describedby="ageAtMRI-help ageAtMRI-error"
-                />
+                <div className="space-y-3">
+                  <Input
+                    id="ageAtMRI"
+                    type="number"
+                    step="any"
+                    value={inputs.ageAtMRI}
+                    onChange={(e) => handleInputChange('ageAtMRI', e.target.value)}
+                    className={errors.ageAtMRI ? 'border-destructive' : ''}
+                    aria-describedby="ageAtMRI-help ageAtMRI-error"
+                    placeholder="65"
+                  />
+                  {inputs.ageAtMRI && !isNaN(Number(inputs.ageAtMRI)) && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>0</span>
+                        <span>{inputs.ageAtMRI} years</span>
+                        <span>120</span>
+                      </div>
+                      <Slider
+                        value={[Number(inputs.ageAtMRI) || 0]}
+                        onValueChange={(value) => handleSliderChange('ageAtMRI', value)}
+                        min={0}
+                        max={120}
+                        step={1}
+                        className="w-full"
+                      />
+                    </div>
+                  )}
+                </div>
                 <p id="ageAtMRI-help" className="text-sm text-muted-foreground">
                   Age in years at time of MRI scan
                 </p>
@@ -249,17 +307,37 @@ const Index = () => {
                 )}
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label htmlFor="totalIntracranialVolume">Total Intracranial Volume</Label>
-                <Input
-                  id="totalIntracranialVolume"
-                  type="number"
-                  step="any"
-                  value={inputs.totalIntracranialVolume}
-                  onChange={(e) => handleInputChange('totalIntracranialVolume', e.target.value)}
-                  className={errors.totalIntracranialVolume ? 'border-destructive' : ''}
-                  aria-describedby="totalIntracranialVolume-help totalIntracranialVolume-error"
-                />
+                <div className="space-y-3">
+                  <Input
+                    id="totalIntracranialVolume"
+                    type="number"
+                    step="any"
+                    value={inputs.totalIntracranialVolume}
+                    onChange={(e) => handleInputChange('totalIntracranialVolume', e.target.value)}
+                    className={errors.totalIntracranialVolume ? 'border-destructive' : ''}
+                    aria-describedby="totalIntracranialVolume-help totalIntracranialVolume-error"
+                    placeholder="1500000"
+                  />
+                  {inputs.totalIntracranialVolume && !isNaN(Number(inputs.totalIntracranialVolume)) && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>0</span>
+                        <span>{Number(inputs.totalIntracranialVolume).toLocaleString()} mm³</span>
+                        <span>2M</span>
+                      </div>
+                      <Slider
+                        value={[Number(inputs.totalIntracranialVolume) || 0]}
+                        onValueChange={(value) => handleSliderChange('totalIntracranialVolume', value)}
+                        min={0}
+                        max={2000000}
+                        step={1000}
+                        className="w-full"
+                      />
+                    </div>
+                  )}
+                </div>
                 <p id="totalIntracranialVolume-help" className="text-sm text-muted-foreground">
                   Same units as the model (typically mm³)
                 </p>
@@ -328,10 +406,29 @@ const Index = () => {
         </div>
 
         {/* Footer Disclaimer */}
-        <div className="text-center">
+        <div className="text-center space-y-4">
           <p className="text-sm text-muted-foreground italic">
             Research decision-support only; not standalone for clinical care.
           </p>
+          
+          {/* Creator Information */}
+          <div className="border-t pt-4">
+            <p className="text-sm text-muted-foreground">
+              <span className="font-medium">Created by</span>
+            </p>
+            <p className="text-sm text-foreground font-medium">
+              Ahmed Negida, MD, PhD
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Parkinson and Movement Disorder Center
+            </p>
+            <p className="text-sm text-muted-foreground">
+              VCU Neurology, Richmond, VA
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              ahmed[dot]said[dot]negida[at]gmail[dot]com
+            </p>
+          </div>
         </div>
       </div>
     </div>
