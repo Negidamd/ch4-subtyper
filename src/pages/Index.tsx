@@ -264,13 +264,11 @@ const Index = () => {
           {/* Header */}
           <div className="text-center space-y-4 animate-fade-in">
             <div className="flex items-center justify-center gap-4 mb-4">
-              <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary to-primary-glow p-3 shadow-lg animate-pulse-glow">
-                <img 
-                  src="/lovable-uploads/6e396a3d-8e6c-4124-b716-7b3c0fe920d4.png" 
-                  alt="Ch4 Brain Region" 
-                  className="w-full h-full object-contain opacity-90"
-                />
-              </div>
+              <img 
+                src="/lovable-uploads/6e396a3d-8e6c-4124-b716-7b3c0fe920d4.png" 
+                alt="Ch4 Brain Region" 
+                className="w-16 h-16 object-contain animate-pulse-glow"
+              />
             </div>
             <h1 className="text-4xl lg:text-5xl font-bold medical-heading">
               PD-MCI Ch4 Subtyping Tool
@@ -298,7 +296,7 @@ const Index = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-4">
-                  <Label htmlFor="Ch4std" className="text-base font-medium">Ch4std (raw MRI measure)</Label>
+                  <Label htmlFor="Ch4std" className="text-base font-medium">Standardized Ch4 GMD</Label>
                   <div className="space-y-4">
                     <Input
                       id="Ch4std"
