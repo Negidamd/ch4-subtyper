@@ -255,334 +255,386 @@ const Index = () => {
   }, [inputs, computedResults, toast]);
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-foreground">PD-MCI Ch4 Subtyping Tool</h1>
-          <p className="text-lg text-muted-foreground">Real-time subtyping of PD-MCI patients by Ch4 GMD</p>
-        </div>
-
-        <div className="grid lg:grid-cols-2 gap-6">
-          {/* Inputs Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Inputs</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <Label htmlFor="Ch4std">Ch4std (raw MRI measure)</Label>
-                <div className="space-y-3">
-                  <Input
-                    id="Ch4std"
-                    type="number"
-                    step="any"
-                    value={inputs.Ch4std}
-                    onChange={(e) => handleInputChange('Ch4std', e.target.value)}
-                    className={errors.Ch4std ? 'border-destructive' : ''}
-                    aria-describedby="Ch4std-error"
-                    placeholder="0.400"
-                  />
-                  {inputs.Ch4std && !isNaN(Number(inputs.Ch4std)) && (
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>0</span>
-                        <span>{inputs.Ch4std}</span>
-                        <span>1</span>
-                      </div>
-                      <Slider
-                        value={[Number(inputs.Ch4std) || 0]}
-                        onValueChange={(value) => handleSliderChange('Ch4std', value)}
-                        min={0}
-                        max={1}
-                        step={0.001}
-                        className="w-full"
-                      />
-                    </div>
-                  )}
-                </div>
-                {errors.Ch4std && (
-                  <p id="Ch4std-error" className="text-sm text-destructive" role="alert">
-                    {errors.Ch4std}
-                  </p>
-                )}
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Brain Background */}
+      <div className="absolute inset-0 brain-bg pointer-events-none" />
+      
+      <div className="relative z-10 p-6">
+        <div className="max-w-6xl mx-auto space-y-8">
+          {/* Header */}
+          <div className="text-center space-y-4 animate-fade-in">
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary to-primary-glow p-3 shadow-lg animate-pulse-glow">
+                <img 
+                  src="/lovable-uploads/6e396a3d-8e6c-4124-b716-7b3c0fe920d4.png" 
+                  alt="Ch4 Brain Region" 
+                  className="w-full h-full object-contain opacity-90"
+                />
               </div>
+            </div>
+            <h1 className="text-4xl lg:text-5xl font-bold medical-heading">
+              PD-MCI Ch4 Subtyping Tool
+            </h1>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Real-time subtyping of PD-MCI patients by Ch4 GMD
+            </p>
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+              <span>Advanced Neuroimaging Analysis</span>
+              <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+            </div>
+          </div>
 
-              <div className="space-y-3">
-                <Label htmlFor="ageAtMRI">Age at MRI (years)</Label>
-                <div className="space-y-3">
-                  <Input
-                    id="ageAtMRI"
-                    type="number"
-                    step="any"
-                    value={inputs.ageAtMRI}
-                    onChange={(e) => handleInputChange('ageAtMRI', e.target.value)}
-                    className={errors.ageAtMRI ? 'border-destructive' : ''}
-                    aria-describedby="ageAtMRI-help ageAtMRI-error"
-                    placeholder="65"
-                  />
-                  {inputs.ageAtMRI && !isNaN(Number(inputs.ageAtMRI)) && (
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>0</span>
-                        <span>{inputs.ageAtMRI} years</span>
-                        <span>120</span>
-                      </div>
-                      <Slider
-                        value={[Number(inputs.ageAtMRI) || 0]}
-                        onValueChange={(value) => handleSliderChange('ageAtMRI', value)}
-                        min={0}
-                        max={120}
-                        step={1}
-                        className="w-full"
-                      />
-                    </div>
-                  )}
-                </div>
-                <p id="ageAtMRI-help" className="text-sm text-muted-foreground">
-                  Age in years at time of MRI scan
-                </p>
-                {errors.ageAtMRI && (
-                  <p id="ageAtMRI-error" className="text-sm text-destructive" role="alert">
-                    {errors.ageAtMRI}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="sex">Sex</Label>
-                <Select value={inputs.sex} onValueChange={(value) => handleInputChange('sex', value)}>
-                  <SelectTrigger className={errors.sex ? 'border-destructive' : ''} aria-describedby="sex-error">
-                    <SelectValue placeholder="Select sex" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Male">Male</SelectItem>
-                    <SelectItem value="Female">Female</SelectItem>
-                  </SelectContent>
-                </Select>
-                {errors.sex && (
-                  <p id="sex-error" className="text-sm text-destructive" role="alert">
-                    {errors.sex}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="sexCodingInModel">Which sex = 1 in the model?</Label>
-                <Select value={inputs.sexCodingInModel} onValueChange={(value) => handleInputChange('sexCodingInModel', value)}>
-                  <SelectTrigger className={errors.sexCodingInModel ? 'border-destructive' : ''} aria-describedby="sexCodingInModel-error">
-                    <SelectValue placeholder="Select coding" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="male=1">Male = 1</SelectItem>
-                    <SelectItem value="female=1">Female = 1</SelectItem>
-                  </SelectContent>
-                </Select>
-                {errors.sexCodingInModel && (
-                  <p id="sexCodingInModel-error" className="text-sm text-destructive" role="alert">
-                    {errors.sexCodingInModel}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-3">
-                <Label htmlFor="TIV_entered">Total Intracranial Volume (TIV)</Label>
-                <div className="space-y-3">
-                  <div className="flex gap-2">
+          <div className="grid lg:grid-cols-2 gap-8">
+            {/* Inputs Card */}
+            <Card className="medical-card border-0 animate-slide-up">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-2xl flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <span className="text-primary font-bold">📊</span>
+                  </div>
+                  Patient Inputs
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <Label htmlFor="Ch4std" className="text-base font-medium">Ch4std (raw MRI measure)</Label>
+                  <div className="space-y-4">
                     <Input
-                      id="TIV_entered"
+                      id="Ch4std"
                       type="number"
                       step="any"
-                      value={inputs.TIV_entered}
-                      onChange={(e) => handleInputChange('TIV_entered', e.target.value)}
-                      className={errors.TIV_entered ? 'border-destructive' : ''}
-                      aria-describedby="TIV_entered-help TIV_entered-error"
-                      placeholder="1500"
+                      value={inputs.Ch4std}
+                      onChange={(e) => handleInputChange('Ch4std', e.target.value)}
+                      className={`h-12 text-lg ${errors.Ch4std ? 'border-destructive focus:ring-destructive' : 'focus:ring-primary'} transition-all duration-200`}
+                      aria-describedby="Ch4std-error"
+                      placeholder="0.400"
                     />
-                    <Select value={inputs.TIV_units} onValueChange={(value) => handleInputChange('TIV_units', value)}>
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
+                    {inputs.Ch4std && !isNaN(Number(inputs.Ch4std)) && (
+                      <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
+                        <div className="flex justify-between text-sm text-muted-foreground font-mono">
+                          <span>0.000</span>
+                          <span className="font-semibold text-primary">{inputs.Ch4std}</span>
+                          <span>1.000</span>
+                        </div>
+                        <Slider
+                          value={[Number(inputs.Ch4std) || 0]}
+                          onValueChange={(value) => handleSliderChange('Ch4std', value)}
+                          min={0}
+                          max={1}
+                          step={0.001}
+                          className="w-full"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  {errors.Ch4std && (
+                    <p id="Ch4std-error" className="text-sm text-destructive font-medium animate-fade-in" role="alert">
+                      {errors.Ch4std}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-4">
+                  <Label htmlFor="ageAtMRI" className="text-base font-medium">Age at MRI (years)</Label>
+                  <div className="space-y-4">
+                    <Input
+                      id="ageAtMRI"
+                      type="number"
+                      step="any"
+                      value={inputs.ageAtMRI}
+                      onChange={(e) => handleInputChange('ageAtMRI', e.target.value)}
+                      className={`h-12 text-lg ${errors.ageAtMRI ? 'border-destructive focus:ring-destructive' : 'focus:ring-primary'} transition-all duration-200`}
+                      aria-describedby="ageAtMRI-help ageAtMRI-error"
+                      placeholder="65"
+                    />
+                    {inputs.ageAtMRI && !isNaN(Number(inputs.ageAtMRI)) && (
+                      <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
+                        <div className="flex justify-between text-sm text-muted-foreground font-mono">
+                          <span>0</span>
+                          <span className="font-semibold text-primary">{inputs.ageAtMRI} years</span>
+                          <span>120</span>
+                        </div>
+                        <Slider
+                          value={[Number(inputs.ageAtMRI) || 0]}
+                          onValueChange={(value) => handleSliderChange('ageAtMRI', value)}
+                          min={0}
+                          max={120}
+                          step={1}
+                          className="w-full"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <p id="ageAtMRI-help" className="text-sm text-muted-foreground">
+                    Age in years at time of MRI scan
+                  </p>
+                  {errors.ageAtMRI && (
+                    <p id="ageAtMRI-error" className="text-sm text-destructive font-medium animate-fade-in" role="alert">
+                      {errors.ageAtMRI}
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <Label htmlFor="sex" className="text-base font-medium">Sex</Label>
+                    <Select value={inputs.sex} onValueChange={(value) => handleInputChange('sex', value)}>
+                      <SelectTrigger className={`h-12 ${errors.sex ? 'border-destructive' : ''}`} aria-describedby="sex-error">
+                        <SelectValue placeholder="Select sex" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="mL">mL</SelectItem>
-                        <SelectItem value="mm³">mm³</SelectItem>
-                        <SelectItem value="L">L</SelectItem>
-                        <SelectItem value="custom">custom</SelectItem>
+                        <SelectItem value="Male">Male</SelectItem>
+                        <SelectItem value="Female">Female</SelectItem>
                       </SelectContent>
                     </Select>
+                    {errors.sex && (
+                      <p id="sex-error" className="text-sm text-destructive font-medium animate-fade-in" role="alert">
+                        {errors.sex}
+                      </p>
+                    )}
                   </div>
-                  
-                  {inputs.TIV_units === 'custom' && (
-                    <div className="space-y-2">
-                      <Label htmlFor="TIV_custom_multiplier">Custom multiplier to convert to mL</Label>
+
+                  <div className="space-y-3">
+                    <Label htmlFor="sexCodingInModel" className="text-base font-medium">Model Coding</Label>
+                    <Select value={inputs.sexCodingInModel} onValueChange={(value) => handleInputChange('sexCodingInModel', value)}>
+                      <SelectTrigger className={`h-12 ${errors.sexCodingInModel ? 'border-destructive' : ''}`} aria-describedby="sexCodingInModel-error">
+                        <SelectValue placeholder="Which = 1?" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="male=1">Male = 1</SelectItem>
+                        <SelectItem value="female=1">Female = 1</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {errors.sexCodingInModel && (
+                      <p id="sexCodingInModel-error" className="text-sm text-destructive font-medium animate-fade-in" role="alert">
+                        {errors.sexCodingInModel}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <Label htmlFor="TIV_entered" className="text-base font-medium">Total Intracranial Volume (TIV)</Label>
+                  <div className="space-y-4">
+                    <div className="flex gap-3">
                       <Input
-                        id="TIV_custom_multiplier"
+                        id="TIV_entered"
                         type="number"
                         step="any"
-                        value={inputs.TIV_custom_multiplier}
-                        onChange={(e) => handleInputChange('TIV_custom_multiplier', e.target.value)}
-                        className={errors.TIV_custom_multiplier ? 'border-destructive' : ''}
-                        placeholder="1"
+                        value={inputs.TIV_entered}
+                        onChange={(e) => handleInputChange('TIV_entered', e.target.value)}
+                        className={`h-12 text-lg flex-1 ${errors.TIV_entered ? 'border-destructive focus:ring-destructive' : 'focus:ring-primary'} transition-all duration-200`}
+                        aria-describedby="TIV_entered-help TIV_entered-error"
+                        placeholder="1500"
                       />
-                      {errors.TIV_custom_multiplier && (
-                        <p className="text-sm text-destructive" role="alert">
-                          {errors.TIV_custom_multiplier}
-                        </p>
-                      )}
+                      <Select value={inputs.TIV_units} onValueChange={(value) => handleInputChange('TIV_units', value)}>
+                        <SelectTrigger className="w-28 h-12">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="mL">mL</SelectItem>
+                          <SelectItem value="mm³">mm³</SelectItem>
+                          <SelectItem value="L">L</SelectItem>
+                          <SelectItem value="custom">custom</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
-                  )}
-                  
-                  {inputs.TIV_entered && !isNaN(Number(inputs.TIV_entered)) && (
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>0</span>
-                        <span>{Number(inputs.TIV_entered).toLocaleString()} {inputs.TIV_units}</span>
-                        <span>{getSliderRange('TIV_entered').max.toLocaleString()}</span>
+                    
+                    {inputs.TIV_units === 'custom' && (
+                      <div className="space-y-3 p-4 bg-warning/5 border border-warning/20 rounded-lg">
+                        <Label htmlFor="TIV_custom_multiplier" className="text-sm font-medium text-warning-foreground">Custom multiplier to convert to mL</Label>
+                        <Input
+                          id="TIV_custom_multiplier"
+                          type="number"
+                          step="any"
+                          value={inputs.TIV_custom_multiplier}
+                          onChange={(e) => handleInputChange('TIV_custom_multiplier', e.target.value)}
+                          className={`h-10 ${errors.TIV_custom_multiplier ? 'border-destructive' : ''}`}
+                          placeholder="1"
+                        />
+                        {errors.TIV_custom_multiplier && (
+                          <p className="text-sm text-destructive font-medium animate-fade-in" role="alert">
+                            {errors.TIV_custom_multiplier}
+                          </p>
+                        )}
                       </div>
-                      <Slider
-                        value={[Number(inputs.TIV_entered) || 0]}
-                        onValueChange={(value) => handleSliderChange('TIV_entered', value)}
-                        min={getSliderRange('TIV_entered').min}
-                        max={getSliderRange('TIV_entered').max}
-                        step={getSliderRange('TIV_entered').step}
-                        className="w-full"
-                      />
-                    </div>
-                  )}
-                </div>
-                <p id="TIV_entered-help" className="text-sm text-muted-foreground">
-                  Enter the TIV value and select appropriate units
-                </p>
-                {errors.TIV_entered && (
-                  <p id="TIV_entered-error" className="text-sm text-destructive" role="alert">
-                    {errors.TIV_entered}
-                  </p>
-                )}
-              </div>
-
-              <Button onClick={handleReset} variant="outline" className="w-full">
-                Reset
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Results Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Results</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {computedResults ? (
-                <>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Participant Ch4 GMD (scaled):</span>
-                      <span className="font-mono text-sm">{computedResults.participantCh4GMD.toFixed(4)}</span>
-                    </div>
+                    )}
                     
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Predicted:</span>
-                      <span className="font-mono text-sm">{computedResults.predicted.toFixed(4)}</span>
-                    </div>
-                    
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Z-score:</span>
-                      <span className="font-mono text-sm">{computedResults.z.toFixed(4)}</span>
-                    </div>
-                    
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Classification:</span>
-                      <div 
-                        className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          computedResults.classification === 'Normal Ch4 GMD' 
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
-                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                        }`}
-                      >
-                        {computedResults.classification}
+                    {inputs.TIV_entered && !isNaN(Number(inputs.TIV_entered)) && (
+                      <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
+                        <div className="flex justify-between text-sm text-muted-foreground font-mono">
+                          <span>0</span>
+                          <span className="font-semibold text-primary">{Number(inputs.TIV_entered).toLocaleString()} {inputs.TIV_units}</span>
+                          <span>{getSliderRange('TIV_entered').max.toLocaleString()}</span>
+                        </div>
+                        <Slider
+                          value={[Number(inputs.TIV_entered) || 0]}
+                          onValueChange={(value) => handleSliderChange('TIV_entered', value)}
+                          min={getSliderRange('TIV_entered').min}
+                          max={getSliderRange('TIV_entered').max}
+                          step={getSliderRange('TIV_entered').step}
+                          className="w-full"
+                        />
                       </div>
-                    </div>
+                    )}
                   </div>
-                  
-                  {/* Debug Panel */}
-                  <Collapsible open={showDebug} onOpenChange={setShowDebug}>
-                    <CollapsibleTrigger asChild>
-                      <Button variant="ghost" className="w-full justify-between p-2">
-                        Debug Panel
-                        {showDebug ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                      </Button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="space-y-2 pt-2 border-t">
-                      <div className="text-xs space-y-1">
-                        <div className="flex justify-between">
-                          <span>Intercept term:</span>
-                          <span className="font-mono">{computedResults.debug.intercept_term.toFixed(4)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Age term:</span>
-                          <span className="font-mono">{computedResults.debug.age_term.toFixed(4)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Sex term:</span>
-                          <span className="font-mono">{computedResults.debug.sex_term.toFixed(4)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>TIV term:</span>
-                          <span className="font-mono">{computedResults.debug.tiv_term.toFixed(4)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Effective TIV (mL):</span>
-                          <span className="font-mono">{computedResults.TIV_effective_mL.toFixed(1)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Sex mapping (0/1):</span>
-                          <span className="font-mono">{computedResults.sex01}</span>
+                  <p id="TIV_entered-help" className="text-sm text-muted-foreground">
+                    Enter the TIV value and select appropriate units
+                  </p>
+                  {errors.TIV_entered && (
+                    <p id="TIV_entered-error" className="text-sm text-destructive font-medium animate-fade-in" role="alert">
+                      {errors.TIV_entered}
+                    </p>
+                  )}
+                </div>
+
+                <Button onClick={handleReset} variant="outline" className="w-full h-12 text-base hover:bg-destructive/10 hover:text-destructive transition-colors">
+                  Reset All Fields
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Results Card */}
+            <Card className="medical-card border-0 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+              <CardHeader className="pb-4">
+                <CardTitle className="text-2xl flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <span className="text-primary font-bold">🧠</span>
+                  </div>
+                  Analysis Results
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {computedResults ? (
+                  <div className="space-y-6 animate-fade-in">
+                    <div className="grid gap-4">
+                      <div className="flex justify-between items-center p-4 bg-muted/30 rounded-lg">
+                        <span className="text-base font-medium">Participant Ch4 GMD (scaled):</span>
+                        <span className="mono-data text-lg text-primary">{computedResults.participantCh4GMD.toFixed(4)}</span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center p-4 bg-muted/30 rounded-lg">
+                        <span className="text-base font-medium">Predicted Value:</span>
+                        <span className="mono-data text-lg text-primary">{computedResults.predicted.toFixed(4)}</span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center p-4 bg-muted/30 rounded-lg">
+                        <span className="text-base font-medium">Z-score:</span>
+                        <span className="mono-data text-lg text-primary">{computedResults.z.toFixed(4)}</span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center p-6 bg-gradient-to-r from-muted/30 to-muted/50 rounded-xl border">
+                        <span className="text-lg font-semibold">Classification:</span>
+                        <div 
+                          className={`px-6 py-3 rounded-full font-bold text-base transition-all duration-300 ${
+                            computedResults.classification === 'Normal Ch4 GMD' 
+                              ? 'bg-success text-success-foreground animate-pulse-glow' 
+                              : 'bg-destructive text-destructive-foreground animate-pulse-glow'
+                          }`}
+                        >
+                          {computedResults.classification}
                         </div>
                       </div>
-                    </CollapsibleContent>
-                  </Collapsible>
-                  
-                  <Button onClick={handleCopyJSON} className="w-full">
-                    Copy JSON
-                  </Button>
-                </>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">
-                    Complete all required fields to see results
-                  </p>
-                  <Button disabled className="w-full mt-4">
-                    Copy JSON
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                    </div>
+                    
+                    {/* Debug Panel */}
+                    <Collapsible open={showDebug} onOpenChange={setShowDebug}>
+                      <CollapsibleTrigger asChild>
+                        <Button variant="ghost" className="w-full justify-between p-4 h-auto bg-muted/20 hover:bg-muted/40 transition-colors">
+                          <span className="font-medium">🔬 Debug Panel</span>
+                          {showDebug ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="space-y-3 pt-4 border-t animate-fade-in">
+                        <div className="grid gap-2 text-sm bg-muted/20 p-4 rounded-lg font-mono">
+                          <div className="flex justify-between border-b border-border/30 pb-1">
+                            <span>Intercept term:</span>
+                            <span className="text-primary font-semibold">{computedResults.debug.intercept_term.toFixed(4)}</span>
+                          </div>
+                          <div className="flex justify-between border-b border-border/30 pb-1">
+                            <span>Age term:</span>
+                            <span className="text-primary font-semibold">{computedResults.debug.age_term.toFixed(4)}</span>
+                          </div>
+                          <div className="flex justify-between border-b border-border/30 pb-1">
+                            <span>Sex term:</span>
+                            <span className="text-primary font-semibold">{computedResults.debug.sex_term.toFixed(4)}</span>
+                          </div>
+                          <div className="flex justify-between border-b border-border/30 pb-1">
+                            <span>TIV term:</span>
+                            <span className="text-primary font-semibold">{computedResults.debug.tiv_term.toFixed(4)}</span>
+                          </div>
+                          <div className="flex justify-between border-b border-border/30 pb-1">
+                            <span>Effective TIV (mL):</span>
+                            <span className="text-accent font-semibold">{computedResults.TIV_effective_mL.toFixed(1)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Sex mapping (0/1):</span>
+                            <span className="text-accent font-semibold">{computedResults.sex01}</span>
+                          </div>
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                    
+                    <Button 
+                      onClick={handleCopyJSON} 
+                      className="w-full h-12 text-base font-semibold bg-primary hover:bg-primary-glow transition-all duration-300 medical-glow"
+                    >
+                      📋 Copy JSON Results
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="text-center py-12 space-y-4">
+                    <div className="w-20 h-20 mx-auto bg-muted/30 rounded-full flex items-center justify-center">
+                      <span className="text-3xl opacity-50">🔬</span>
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-lg font-medium text-muted-foreground">
+                        Complete all required fields to see results
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Enter patient data above to perform Ch4 GMD analysis
+                      </p>
+                    </div>
+                    <Button disabled className="w-full h-12 text-base">
+                      📋 Copy JSON Results
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
 
-        {/* Footer Disclaimer */}
-        <div className="text-center space-y-4">
-          <p className="text-sm text-muted-foreground italic">
-            Research decision-support only; not standalone for clinical care.
-          </p>
-          
-          {/* Creator Information */}
-          <div className="border-t pt-4">
-            <p className="text-sm text-muted-foreground">
-              <span className="font-medium">Created by</span>
-            </p>
-            <p className="text-sm text-foreground font-medium">
-              Ahmed Negida, MD, PhD
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Parkinson and Movement Disorder Center
-            </p>
-            <p className="text-sm text-muted-foreground">
-              VCU Neurology, Richmond, VA
-            </p>
-            <p className="text-xs text-muted-foreground mt-2">
-              ahmed[dot]said[dot]negida[at]gmail[dot]com
-            </p>
+          {/* Footer */}
+          <div className="text-center space-y-6 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+            <div className="p-6 bg-warning/5 border border-warning/20 rounded-xl">
+              <p className="text-base text-warning-foreground font-medium italic">
+                ⚠️ Research decision-support only; not standalone for clinical care.
+              </p>
+            </div>
+            
+            {/* Creator Information */}
+            <div className="p-6 medical-card rounded-xl">
+              <div className="space-y-3">
+                <p className="text-lg font-semibold text-foreground">
+                  Created by
+                </p>
+                <div className="space-y-1">
+                  <p className="text-xl font-bold medical-heading">
+                    Ahmed Negida, MD, PhD
+                  </p>
+                  <p className="text-base text-muted-foreground font-medium">
+                    Parkinson and Movement Disorder Center
+                  </p>
+                  <p className="text-base text-muted-foreground">
+                    VCU Neurology, Richmond, VA
+                  </p>
+                  <p className="text-sm text-muted-foreground font-mono mt-3 p-2 bg-muted/20 rounded-lg">
+                    ahmed[dot]said[dot]negida[at]gmail[dot]com
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
