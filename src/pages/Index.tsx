@@ -43,6 +43,7 @@ interface ValidationErrors {
 }
 
 const Index = () => {
+  console.log('PD-MCI Ch4 Subtyping Tool component is mounting');
   const { toast } = useToast();
   
   const [inputs, setInputs] = useState<InputData>({
