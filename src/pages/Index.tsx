@@ -27,7 +27,6 @@ interface InputData {
   Ch4std: string;
   ageAtMRI: string;
   sex: string;
-  sexCodingInModel: string;
   TIV_entered: string;
   TIV_units: string;
   TIV_custom_multiplier: string;
@@ -37,7 +36,6 @@ interface ValidationErrors {
   Ch4std?: string;
   ageAtMRI?: string;
   sex?: string;
-  sexCodingInModel?: string;
   TIV_entered?: string;
   TIV_custom_multiplier?: string;
 }
@@ -50,7 +48,6 @@ const Index = () => {
     Ch4std: '',
     ageAtMRI: '',
     sex: '',
-    sexCodingInModel: 'male=1',
     TIV_entered: '',
     TIV_units: 'mL',
     TIV_custom_multiplier: '1'
@@ -60,7 +57,7 @@ const Index = () => {
   const [showDebug, setShowDebug] = useState(false);
 
   const validateField = useCallback((key: keyof InputData, value: string): string | undefined => {
-    if (key === 'sex' || key === 'sexCodingInModel' || key === 'TIV_units') {
+    if (key === 'TIV_units') {
       if (!value.trim()) {
         return 'This field is required';
       }
@@ -78,6 +75,10 @@ const Index = () => {
     
     if (key === 'ageAtMRI' && (numValue < 0 || numValue > 120)) {
       return 'Age must be between 0 and 120 years';
+    }
+    
+    if (key === 'sex' && (numValue < 0 || numValue > 1)) {
+      return 'Sex must be between 0 (Female) and 1 (Male)';
     }
     
     if ((key === 'Ch4std' || key === 'TIV_entered') && numValue < 0) {
@@ -118,6 +119,8 @@ const Index = () => {
         return { min: 0, max: 1, step: 0.001 };
       case 'ageAtMRI':
         return { min: 0, max: 120, step: 1 };
+      case 'sex':
+        return { min: 0, max: 1, step: 0.01 };
       case 'TIV_entered':
         return inputs.TIV_units === 'mm³' 
           ? { min: 0, max: 2000000, step: 1000 }
@@ -140,12 +143,11 @@ const Index = () => {
   }, [inputs.TIV_units, inputs.TIV_custom_multiplier]);
 
   const isValid = useMemo(() => {
-    const requiredFields = ['Ch4std', 'ageAtMRI', 'sex', 'sexCodingInModel', 'TIV_entered'];
+    const requiredFields = ['Ch4std', 'ageAtMRI', 'sex', 'TIV_entered'];
     const hasAllFields = requiredFields.every(field => inputs[field as keyof InputData].trim() !== '');
     const hasNoErrors = Object.keys(errors).length === 0;
     const noNaNValues = requiredFields.every(field => {
       const value = inputs[field as keyof InputData];
-      if (field === 'sex' || field === 'sexCodingInModel') return value !== '';
       return !isNaN(Number(value));
     });
     
@@ -170,10 +172,8 @@ const Index = () => {
     // Compute scaled participant Ch4 GMD
     const participantCh4GMD = (((Ch4std - COEF.ctrl_mean) / COEF.ctrl_sd) * COEF.scale_sd) + COEF.scale_mean;
     
-    // Map sex to 0/1 based on coding
-    const sex01 = inputs.sexCodingInModel === 'male=1' 
-      ? (inputs.sex === 'Male' ? 1 : 0)
-      : (inputs.sex === 'Female' ? 1 : 0);
+    // Use sex value directly (0-1 scale)
+    const sex01 = Number(inputs.sex);
     
     // Compute predicted value using regression
     const intercept_term = COEF.intercept;
@@ -209,7 +209,6 @@ const Index = () => {
       Ch4std: '',
       ageAtMRI: '',
       sex: '',
-      sexCodingInModel: 'male=1',
       TIV_entered: '',
       TIV_units: 'mL',
       TIV_custom_multiplier: '1'
@@ -224,8 +223,7 @@ const Index = () => {
       input: {
         Ch4std: Number(inputs.Ch4std),
         ageAtMRI: Number(inputs.ageAtMRI),
-        sex: inputs.sex,
-        sexCodingInModel: inputs.sexCodingInModel,
+        sex: Number(inputs.sex),
         TIV_entered: Number(inputs.TIV_entered),
         TIV_units: inputs.TIV_units,
         TIV_scale_to_mL: computedResults.TIV_scale_to_mL,
@@ -374,42 +372,47 @@ const Index = () => {
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-3">
-                    <Label htmlFor="sex" className="text-base font-medium">Sex</Label>
-                    <Select value={inputs.sex} onValueChange={(value) => handleInputChange('sex', value)}>
-                      <SelectTrigger className={`h-12 ${errors.sex ? 'border-destructive' : ''}`} aria-describedby="sex-error">
-                        <SelectValue placeholder="Select sex" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Male">Male</SelectItem>
-                        <SelectItem value="Female">Female</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {errors.sex && (
-                      <p id="sex-error" className="text-sm text-destructive font-medium animate-fade-in" role="alert">
-                        {errors.sex}
-                      </p>
+                <div className="space-y-4">
+                  <Label htmlFor="sex" className="text-base font-medium">Sex (0 = Female, 1 = Male)</Label>
+                  <div className="space-y-4">
+                    <Input
+                      id="sex"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="1"
+                      value={inputs.sex}
+                      onChange={(e) => handleInputChange('sex', e.target.value)}
+                      className={`h-12 text-lg ${errors.sex ? 'border-destructive focus:ring-destructive' : 'focus:ring-primary'} transition-all duration-200`}
+                      aria-describedby="sex-help sex-error"
+                      placeholder="0.5"
+                    />
+                    {inputs.sex && !isNaN(Number(inputs.sex)) && (
+                      <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
+                        <div className="flex justify-between text-sm text-muted-foreground font-mono">
+                          <span>0 (Female)</span>
+                          <span className="font-semibold text-primary">{inputs.sex}</span>
+                          <span>1 (Male)</span>
+                        </div>
+                        <Slider
+                          value={[Number(inputs.sex) || 0]}
+                          onValueChange={(value) => handleSliderChange('sex', value)}
+                          min={0}
+                          max={1}
+                          step={0.01}
+                          className="w-full"
+                        />
+                      </div>
                     )}
                   </div>
-
-                  <div className="space-y-3">
-                    <Label htmlFor="sexCodingInModel" className="text-base font-medium">Model Coding</Label>
-                    <Select value={inputs.sexCodingInModel} onValueChange={(value) => handleInputChange('sexCodingInModel', value)}>
-                      <SelectTrigger className={`h-12 ${errors.sexCodingInModel ? 'border-destructive' : ''}`} aria-describedby="sexCodingInModel-error">
-                        <SelectValue placeholder="Which = 1?" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="male=1">Male = 1</SelectItem>
-                        <SelectItem value="female=1">Female = 1</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {errors.sexCodingInModel && (
-                      <p id="sexCodingInModel-error" className="text-sm text-destructive font-medium animate-fade-in" role="alert">
-                        {errors.sexCodingInModel}
-                      </p>
-                    )}
-                  </div>
+                  <p id="sex-help" className="text-sm text-muted-foreground">
+                    Continuous scale: 0 = Female, 1 = Male, 0.5 = Non-binary/Other
+                  </p>
+                  {errors.sex && (
+                    <p id="sex-error" className="text-sm text-destructive font-medium animate-fade-in" role="alert">
+                      {errors.sex}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-4">
