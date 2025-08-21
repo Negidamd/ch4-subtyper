@@ -57,7 +57,7 @@ const Index = () => {
   const [showDebug, setShowDebug] = useState(false);
 
   const validateField = useCallback((key: keyof InputData, value: string): string | undefined => {
-    if (key === 'TIV_units') {
+    if (key === 'sex' || key === 'TIV_units') {
       if (!value.trim()) {
         return 'This field is required';
       }
@@ -75,10 +75,6 @@ const Index = () => {
     
     if (key === 'ageAtMRI' && (numValue < 0 || numValue > 120)) {
       return 'Age must be between 0 and 120 years';
-    }
-    
-    if (key === 'sex' && (numValue < 0 || numValue > 1)) {
-      return 'Sex must be between 0 (Female) and 1 (Male)';
     }
     
     if ((key === 'Ch4std' || key === 'TIV_entered') && numValue < 0) {
@@ -148,6 +144,7 @@ const Index = () => {
     const hasNoErrors = Object.keys(errors).length === 0;
     const noNaNValues = requiredFields.every(field => {
       const value = inputs[field as keyof InputData];
+      if (field === 'sex') return value !== '';
       return !isNaN(Number(value));
     });
     
@@ -172,8 +169,8 @@ const Index = () => {
     // Compute scaled participant Ch4 GMD
     const participantCh4GMD = (((Ch4std - COEF.ctrl_mean) / COEF.ctrl_sd) * COEF.scale_sd) + COEF.scale_mean;
     
-    // Use sex value directly (0-1 scale)
-    const sex01 = Number(inputs.sex);
+    // Map sex to 0/1 (Female=0, Male=1)
+    const sex01 = inputs.sex === 'Male' ? 1 : 0;
     
     // Compute predicted value using regression
     const intercept_term = COEF.intercept;
@@ -223,7 +220,7 @@ const Index = () => {
       input: {
         Ch4std: Number(inputs.Ch4std),
         ageAtMRI: Number(inputs.ageAtMRI),
-        sex: Number(inputs.sex),
+        sex: inputs.sex,
         TIV_entered: Number(inputs.TIV_entered),
         TIV_units: inputs.TIV_units,
         TIV_scale_to_mL: computedResults.TIV_scale_to_mL,
@@ -372,42 +369,17 @@ const Index = () => {
                   )}
                 </div>
 
-                <div className="space-y-4">
-                  <Label htmlFor="sex" className="text-base font-medium">Sex (0 = Female, 1 = Male)</Label>
-                  <div className="space-y-4">
-                    <Input
-                      id="sex"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      max="1"
-                      value={inputs.sex}
-                      onChange={(e) => handleInputChange('sex', e.target.value)}
-                      className={`h-12 text-lg ${errors.sex ? 'border-destructive focus:ring-destructive' : 'focus:ring-primary'} transition-all duration-200`}
-                      aria-describedby="sex-help sex-error"
-                      placeholder="0.5"
-                    />
-                    {inputs.sex && !isNaN(Number(inputs.sex)) && (
-                      <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
-                        <div className="flex justify-between text-sm text-muted-foreground font-mono">
-                          <span>0 (Female)</span>
-                          <span className="font-semibold text-primary">{inputs.sex}</span>
-                          <span>1 (Male)</span>
-                        </div>
-                        <Slider
-                          value={[Number(inputs.sex) || 0]}
-                          onValueChange={(value) => handleSliderChange('sex', value)}
-                          min={0}
-                          max={1}
-                          step={0.01}
-                          className="w-full"
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <p id="sex-help" className="text-sm text-muted-foreground">
-                    Continuous scale: 0 = Female, 1 = Male, 0.5 = Non-binary/Other
-                  </p>
+                <div className="space-y-3">
+                  <Label htmlFor="sex" className="text-base font-medium">Sex</Label>
+                  <Select value={inputs.sex} onValueChange={(value) => handleInputChange('sex', value)}>
+                    <SelectTrigger className={`h-12 ${errors.sex ? 'border-destructive' : ''}`} aria-describedby="sex-error">
+                      <SelectValue placeholder="Select sex" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Male">Male</SelectItem>
+                      <SelectItem value="Female">Female</SelectItem>
+                    </SelectContent>
+                  </Select>
                   {errors.sex && (
                     <p id="sex-error" className="text-sm text-destructive font-medium animate-fade-in" role="alert">
                       {errors.sex}
