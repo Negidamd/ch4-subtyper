@@ -575,7 +575,7 @@ const Index = () => {
           {/* Footer */}
           <div className="text-center space-y-6 animate-fade-in" style={{ animationDelay: '0.3s' }}>
             <div className="p-6 bg-warning/20 border border-warning/30 rounded-xl">
-              <p className="text-base text-warning-foreground font-medium italic">
+              <p className="text-base text-black font-medium italic">
                 ⚠️ Research decision-support only; not standalone for clinical care.
               </p>
             </div>
