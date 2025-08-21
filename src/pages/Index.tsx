@@ -303,23 +303,21 @@ const Index = () => {
                       aria-describedby="Ch4std-error"
                       placeholder="0.400"
                     />
-                    {inputs.Ch4std && !isNaN(Number(inputs.Ch4std)) && (
-                      <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
-                        <div className="flex justify-between text-sm text-muted-foreground font-mono">
-                          <span>0.000</span>
-                          <span className="font-semibold text-primary">{inputs.Ch4std}</span>
-                          <span>1.000</span>
-                        </div>
-                        <Slider
-                          value={[Number(inputs.Ch4std) || 0]}
-                          onValueChange={(value) => handleSliderChange('Ch4std', value)}
-                          min={0}
-                          max={1}
-                          step={0.001}
-                          className="w-full"
-                        />
+                    <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
+                      <div className="flex justify-between text-sm text-muted-foreground font-mono">
+                        <span>0.000</span>
+                        <span className="font-semibold text-primary">{inputs.Ch4std || '0.000'}</span>
+                        <span>1.000</span>
                       </div>
-                    )}
+                      <Slider
+                        value={[Number(inputs.Ch4std) || 0]}
+                        onValueChange={(value) => handleSliderChange('Ch4std', value)}
+                        min={0}
+                        max={1}
+                        step={0.001}
+                        className="w-full"
+                      />
+                    </div>
                   </div>
                   {errors.Ch4std && (
                     <p id="Ch4std-error" className="text-sm text-destructive font-medium animate-fade-in" role="alert">
@@ -341,23 +339,21 @@ const Index = () => {
                       aria-describedby="ageAtMRI-help ageAtMRI-error"
                       placeholder="65"
                     />
-                    {inputs.ageAtMRI && !isNaN(Number(inputs.ageAtMRI)) && (
-                      <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
-                        <div className="flex justify-between text-sm text-muted-foreground font-mono">
-                          <span>0</span>
-                          <span className="font-semibold text-primary">{inputs.ageAtMRI} years</span>
-                          <span>120</span>
-                        </div>
-                        <Slider
-                          value={[Number(inputs.ageAtMRI) || 0]}
-                          onValueChange={(value) => handleSliderChange('ageAtMRI', value)}
-                          min={0}
-                          max={120}
-                          step={1}
-                          className="w-full"
-                        />
+                    <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
+                      <div className="flex justify-between text-sm text-muted-foreground font-mono">
+                        <span>0</span>
+                        <span className="font-semibold text-primary">{inputs.ageAtMRI || '0'} years</span>
+                        <span>120</span>
                       </div>
-                    )}
+                      <Slider
+                        value={[Number(inputs.ageAtMRI) || 0]}
+                        onValueChange={(value) => handleSliderChange('ageAtMRI', value)}
+                        min={0}
+                        max={120}
+                        step={1}
+                        className="w-full"
+                      />
+                    </div>
                   </div>
                   <p id="ageAtMRI-help" className="text-sm text-muted-foreground">
                     Age in years at time of MRI scan
@@ -434,23 +430,21 @@ const Index = () => {
                       </div>
                     )}
                     
-                    {inputs.TIV_entered && !isNaN(Number(inputs.TIV_entered)) && (
-                      <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
-                        <div className="flex justify-between text-sm text-muted-foreground font-mono">
-                          <span>0</span>
-                          <span className="font-semibold text-primary">{Number(inputs.TIV_entered).toLocaleString()} {inputs.TIV_units}</span>
-                          <span>{getSliderRange('TIV_entered').max.toLocaleString()}</span>
-                        </div>
-                        <Slider
-                          value={[Number(inputs.TIV_entered) || 0]}
-                          onValueChange={(value) => handleSliderChange('TIV_entered', value)}
-                          min={getSliderRange('TIV_entered').min}
-                          max={getSliderRange('TIV_entered').max}
-                          step={getSliderRange('TIV_entered').step}
-                          className="w-full"
-                        />
+                    <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
+                      <div className="flex justify-between text-sm text-muted-foreground font-mono">
+                        <span>0</span>
+                        <span className="font-semibold text-primary">{inputs.TIV_entered ? `${Number(inputs.TIV_entered).toLocaleString()} ${inputs.TIV_units}` : `0 ${inputs.TIV_units}`}</span>
+                        <span>{getSliderRange('TIV_entered').max.toLocaleString()}</span>
                       </div>
-                    )}
+                      <Slider
+                        value={[Number(inputs.TIV_entered) || 0]}
+                        onValueChange={(value) => handleSliderChange('TIV_entered', value)}
+                        min={getSliderRange('TIV_entered').min}
+                        max={getSliderRange('TIV_entered').max}
+                        step={getSliderRange('TIV_entered').step}
+                        className="w-full"
+                      />
+                    </div>
                   </div>
                   <p id="TIV_entered-help" className="text-sm text-muted-foreground">
                     Enter the TIV value and select appropriate units
