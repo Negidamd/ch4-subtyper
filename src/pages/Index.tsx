@@ -265,7 +265,7 @@ const Index = () => {
           <div className="text-center space-y-4 animate-fade-in">
             <div className="flex items-center justify-center gap-4 mb-4">
               <img 
-                src="/lovable-uploads/6e396a3d-8e6c-4124-b716-7b3c0fe920d4.png" 
+                src="/lovable-uploads/c42099f0-ebe0-4830-b8bf-202f00856c9b.png" 
                 alt="Ch4 Brain Region" 
                 className="w-16 h-16 object-contain animate-pulse-glow"
               />
@@ -605,7 +605,7 @@ const Index = () => {
 
           {/* Footer */}
           <div className="text-center space-y-6 animate-fade-in" style={{ animationDelay: '0.3s' }}>
-            <div className="p-6 bg-warning/5 border border-warning/20 rounded-xl">
+            <div className="p-6 bg-warning/10 border border-warning/20 rounded-xl">
               <p className="text-base text-warning-foreground font-medium italic">
                 ⚠️ Research decision-support only; not standalone for clinical care.
               </p>
