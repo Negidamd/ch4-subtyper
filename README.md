@@ -1,73 +1,97 @@
-# Welcome to your Lovable project
+# PD-MCI Ch4 Subtyping Tool
 
-## Project info
+A web-based clinical decision-support tool for MRI-based cholinergic subtyping of Parkinson's disease patients with mild cognitive impairment (PD-MCI).
 
-**URL**: https://lovable.dev/projects/2a3c8936-596f-43f1-b6ea-4ffd561e4117
+**Live Tool:** [https://ch4subtyping.negida.com](https://ch4subtyping.negida.com)
 
-## How can I edit this code?
+## Overview
 
-There are several ways of editing your application.
+This tool implements a regression-based normative model to classify PD-MCI patients as having **Low Ch4 GMD** (disproportionate cholinergic degeneration) or **Normal Ch4 GMD** based on structural MRI measures of the nucleus basalis of Meynert (Ch4 region). The subtyping framework was developed using data from the Parkinson's Progression Markers Initiative (PPMI).
 
-**Use Lovable**
+## Method
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/2a3c8936-596f-43f1-b6ea-4ffd561e4117) and start prompting.
+### Inputs
 
-Changes made via Lovable will be committed automatically to this repo.
+| Parameter | Description | Units |
+|-----------|-------------|-------|
+| **Standardized Ch4 GMD** | Gray matter density of the Ch4 region extracted from T1-weighted MRI using the cytoarchitectonic maps of Zaborszky et al. | 0-1 (probability) |
+| **Age at MRI** | Patient age at time of MRI acquisition | Years |
+| **Sex** | Biological sex | Male / Female |
+| **Total Intracranial Volume (TIV)** | Total intracranial volume from segmentation | mL (supports mm3, L, or custom units) |
 
-**Use your preferred IDE**
+### Computation
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+1. **Scaling**: The standardized Ch4 GMD is transformed to a common metric using healthy control reference values:
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+   ```
+   Scaled Ch4 GMD = ((Ch4_std - HC_mean) / HC_sd) * 3 + 10
+   ```
 
-Follow these steps:
+   where HC_mean = 0.3985484 and HC_sd = 0.0386747 are derived from a healthy control sample.
+
+2. **Normative Prediction**: A predicted Ch4 GMD value is computed from a multiple linear regression model adjusting for age, sex, and TIV:
+
+   ```
+   Predicted = 1.57859 + (-0.1078075 * Age) + (0.8647528 * Sex) + (0.0096637 * TIV_mL)
+   ```
+
+   where Sex is coded as Male = 1, Female = 0.
+
+3. **Z-score**: The deviation between observed and predicted values is expressed as a z-score:
+
+   ```
+   Z = (Scaled_Ch4_GMD - Predicted) / SD_residual
+   ```
+
+   where SD_residual = 2.2252.
+
+4. **Classification**: Patients with z < -1.0 are classified as **Low Ch4 GMD**; otherwise **Normal Ch4 GMD**.
+
+### Outputs
+
+| Output | Description |
+|--------|-------------|
+| **Scaled Ch4 GMD** | Participant's Ch4 GMD transformed to the common scale |
+| **Predicted Value** | Expected Ch4 GMD based on age, sex, and TIV |
+| **Z-score** | Standardized deviation from the normative prediction |
+| **Classification** | Low Ch4 GMD (z < -1.0) or Normal Ch4 GMD (z >= -1.0) |
+
+## Disclaimer
+
+This tool is intended as a **research decision-support aid** and is not designed for standalone clinical care. Classification results should be interpreted in the context of the full clinical picture and validated imaging protocols.
+
+## Citation
+
+If you use this tool in your research, please cite:
+
+> Negida A, et al. MRI-based cholinergic subtyping of Parkinson's disease with mild cognitive impairment. *[Journal, Year]*.
+
+## Author
+
+**Ahmed Negida, MD, PhD**
+Parkinson and Movement Disorder Center
+VCU Neurology, Richmond, VA
+
+## Tech Stack
+
+- [React](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
+- [Vite](https://vitejs.dev/)
+- [shadcn/ui](https://ui.shadcn.com/)
+- [Tailwind CSS](https://tailwindcss.com/)
+
+## Development
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# Install dependencies
+npm install
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start development server
 npm run dev
+
+# Build for production
+npm run build
 ```
 
-**Edit a file directly in GitHub**
+## License
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/2a3c8936-596f-43f1-b6ea-4ffd561e4117) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+All rights reserved. For research use only.
