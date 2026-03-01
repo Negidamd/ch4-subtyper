@@ -511,7 +511,7 @@ const Index = () => {
                 <p>Department of Neurology, Virginia Commonwealth University</p>
                 <p>Richmond, VA</p>
               </div>
-              <p className="text-sm text-muted-foreground font-mono pt-2">ahmed.negida@vcuhealth.org</p>
+              <p className="text-sm text-muted-foreground font-mono pt-2">ahmed@negida.com</p>
               <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
                 <PillLink href="https://github.com/Negidamd/ch4-subtyper">GitHub</PillLink>
                 <PillLink href="https://pubmed.ncbi.nlm.nih.gov/?term=negida+a&sort=date">PubMed Profile</PillLink>
