@@ -665,26 +665,33 @@ const Index = () => {
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   If you use this tool in your research, please cite:
                 </p>
-                <div className="p-4 bg-muted/30 rounded-lg text-sm text-muted-foreground font-mono leading-relaxed">
-                  Negida A, et al. MRI-based cholinergic subtyping of Parkinson's disease with mild cognitive impairment. <em>[Manuscript under review]</em>.
+                <div className="p-4 bg-muted/30 rounded-lg text-sm text-muted-foreground leading-relaxed">
+                  Negida A, Vohra HZ, Lageman SK, Mukhopadhyay N, Berman BD, Weintraub D, Barrett MJ. Parkinson's disease mild cognitive impairment with MRI evidence of cholinergic nucleus 4 degeneration: A new subtype? <em>Parkinsonism Relat Disord.</em> 2025;141:108072.
                 </div>
-                <div className="flex items-center justify-center gap-4 pt-2">
+                <div className="flex flex-wrap items-center justify-center gap-3 pt-3">
+                  <a
+                    href="https://doi.org/10.1016/j.parkreldis.2025.108072"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold rounded-full transition-colors"
+                  >
+                    Full Text (DOI)
+                  </a>
+                  <a
+                    href="https://pubmed.ncbi.nlm.nih.gov/41106089/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold rounded-full transition-colors"
+                  >
+                    PubMed
+                  </a>
                   <a
                     href="https://github.com/Negidamd/ch4-subtyper"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-primary hover:underline font-medium"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold rounded-full transition-colors"
                   >
-                    GitHub Repository
-                  </a>
-                  <span className="text-muted-foreground">|</span>
-                  <a
-                    href="https://ch4subtyping.negida.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-primary hover:underline font-medium"
-                  >
-                    ch4subtyping.negida.com
+                    GitHub
                   </a>
                 </div>
               </CardContent>
