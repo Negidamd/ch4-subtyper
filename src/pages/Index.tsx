@@ -156,7 +156,7 @@ const Index = () => {
         {/* ===== HERO ===== */}
         <div className="px-6 pt-10 pb-8">
           <div className="max-w-5xl mx-auto text-center space-y-5 animate-fade-in">
-            <img src="/lovable-uploads/c42099f0-ebe0-4830-b8bf-202f00856c9b.png" alt="Ch4 Brain Region" className="w-20 h-20 mx-auto object-contain animate-pulse-glow" />
+            <img src={`${import.meta.env.BASE_URL}lovable-uploads/c42099f0-ebe0-4830-b8bf-202f00856c9b.png`} alt="Ch4 Brain Region" className="w-20 h-20 mx-auto object-contain animate-pulse-glow" />
             <h1 className="text-4xl lg:text-5xl font-bold medical-heading">
               Cholinergic Subtyping of PD-MCI
             </h1>
@@ -462,7 +462,7 @@ const Index = () => {
                     {/* MDS 2024 */}
                     <div className="space-y-3">
                       <div className="aspect-[4/3] rounded-xl overflow-hidden bg-muted/30 border">
-                        <img src="/images/mds-2024-poster.jpg" alt="MDS 2024 Poster Presentation - Subtyping PD-MCI by Cholinergic Degeneration" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center text-muted-foreground text-sm p-4 text-center">MDS 2024 Poster Photo<br/><span class="text-xs opacity-60 mt-1 block">Add image to /public/images/mds-2024-poster.jpg</span></div>'; }} />
+                        <img src={`${import.meta.env.BASE_URL}images/mds-2024-poster.jpg`} alt="MDS 2024 Poster Presentation - Subtyping PD-MCI by Cholinergic Degeneration" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center text-muted-foreground text-sm p-4 text-center">MDS 2024 Poster Photo<br/><span class="text-xs opacity-60 mt-1 block">Add image to /public/images/mds-2024-poster.jpg</span></div>'; }} />
                       </div>
                       <div>
                         <h4 className="font-semibold text-foreground">MDS International Congress 2024</h4>
@@ -472,7 +472,7 @@ const Index = () => {
                     {/* AAN 2025 */}
                     <div className="space-y-3">
                       <div className="aspect-[4/3] rounded-xl overflow-hidden bg-muted/30 border">
-                        <img src="/images/aan-2025-oral.jpg" alt="AAN 2025 Oral Platform Presentation - Ch4 Subtyping in PD-MCI" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center text-muted-foreground text-sm p-4 text-center">AAN 2025 Oral Presentation Photo<br/><span class="text-xs opacity-60 mt-1 block">Add image to /public/images/aan-2025-oral.jpg</span></div>'; }} />
+                        <img src={`${import.meta.env.BASE_URL}images/aan-2025-oral.jpg`} alt="AAN 2025 Oral Platform Presentation - Ch4 Subtyping in PD-MCI" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center text-muted-foreground text-sm p-4 text-center">AAN 2025 Oral Presentation Photo<br/><span class="text-xs opacity-60 mt-1 block">Add image to /public/images/aan-2025-oral.jpg</span></div>'; }} />
                       </div>
                       <div>
                         <h4 className="font-semibold text-foreground">AAN Annual Meeting 2025</h4>
