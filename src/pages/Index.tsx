@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,7 +9,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-// Model coefficients and parameters for easy editing
+// Model coefficients and parameters
 const COEF = {
   intercept: 1.57859,
   age: -0.1078075,
@@ -40,70 +40,57 @@ interface ValidationErrors {
   TIV_custom_multiplier?: string;
 }
 
+// --- Section navigation items ---
+const NAV_ITEMS = [
+  { id: 'about', label: 'About' },
+  { id: 'findings', label: 'Key Findings' },
+  { id: 'tool', label: 'Subtyping Tool' },
+  { id: 'methodology', label: 'Methodology' },
+  { id: 'publications', label: 'Publications' },
+  { id: 'presentations', label: 'Presentations' },
+  { id: 'citation', label: 'Citation' },
+];
+
 const Index = () => {
-  console.log('PD-MCI Ch4 Subtyping Tool component is mounting');
   const { toast } = useToast();
-
   const [inputs, setInputs] = useState<InputData>({
-    Ch4std: '',
-    ageAtMRI: '',
-    sex: '',
-    TIV_entered: '',
-    TIV_units: 'mL',
-    TIV_custom_multiplier: '1'
+    Ch4std: '', ageAtMRI: '', sex: '', TIV_entered: '', TIV_units: 'mL', TIV_custom_multiplier: '1'
   });
-
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [showDebug, setShowDebug] = useState(false);
-  const [showMethodology, setShowMethodology] = useState(false);
 
+  // --- Refs for scroll navigation ---
+  const sectionRefs: Record<string, React.RefObject<HTMLDivElement>> = {
+    about: useRef<HTMLDivElement>(null),
+    findings: useRef<HTMLDivElement>(null),
+    tool: useRef<HTMLDivElement>(null),
+    methodology: useRef<HTMLDivElement>(null),
+    publications: useRef<HTMLDivElement>(null),
+    presentations: useRef<HTMLDivElement>(null),
+    citation: useRef<HTMLDivElement>(null),
+  };
+
+  const scrollToSection = (id: string) => {
+    sectionRefs[id]?.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  // --- Calculator logic (unchanged) ---
   const validateField = useCallback((key: keyof InputData, value: string): string | undefined => {
-    if (key === 'sex' || key === 'TIV_units') {
-      if (!value.trim()) {
-        return 'This field is required';
-      }
-      return;
-    }
-
-    if (!value.trim()) {
-      return 'This field is required';
-    }
-
-    const numValue = Number(value);
-    if (isNaN(numValue)) {
-      return 'Must be a valid number';
-    }
-
-    if (key === 'ageAtMRI' && (numValue < 0 || numValue > 120)) {
-      return 'Age must be between 0 and 120 years';
-    }
-
-    if ((key === 'Ch4std' || key === 'TIV_entered') && numValue < 0) {
-      return 'Value must be positive';
-    }
-
-    if (key === 'TIV_custom_multiplier' && numValue <= 0) {
-      return 'Multiplier must be positive';
-    }
-
-    return;
+    if (key === 'sex' || key === 'TIV_units') return !value.trim() ? 'This field is required' : undefined;
+    if (!value.trim()) return 'This field is required';
+    const n = Number(value);
+    if (isNaN(n)) return 'Must be a valid number';
+    if (key === 'ageAtMRI' && (n < 0 || n > 120)) return 'Age must be between 0 and 120 years';
+    if ((key === 'Ch4std' || key === 'TIV_entered') && n < 0) return 'Value must be positive';
+    if (key === 'TIV_custom_multiplier' && n <= 0) return 'Multiplier must be positive';
+    return undefined;
   }, []);
 
   const handleInputChange = useCallback((key: keyof InputData, value: string) => {
     setInputs(prev => ({ ...prev, [key]: value }));
-
-    // Clear error for this field
-    setErrors(prev => {
-      const newErrors = { ...prev };
-      delete newErrors[key];
-      return newErrors;
-    });
-
-    // Validate field
-    const error = validateField(key, value);
-    if (error) {
-      setErrors(prev => ({ ...prev, [key]: error }));
-    }
+    setErrors(prev => { const e = { ...prev }; delete e[key]; return e; });
+    const err = validateField(key, value);
+    if (err) setErrors(prev => ({ ...prev, [key]: err }));
   }, [validateField]);
 
   const handleSliderChange = useCallback((key: keyof InputData, value: number[]) => {
@@ -111,614 +98,426 @@ const Index = () => {
   }, [handleInputChange]);
 
   const getSliderRange = (key: keyof InputData) => {
-    switch (key) {
-      case 'Ch4std':
-        return { min: 0, max: 1, step: 0.001 };
-      case 'ageAtMRI':
-        return { min: 0, max: 120, step: 1 };
-      case 'sex':
-        return { min: 0, max: 1, step: 0.01 };
-      case 'TIV_entered':
-        return inputs.TIV_units === 'mm\u00B3'
-          ? { min: 0, max: 2000000, step: 1000 }
-          : inputs.TIV_units === 'L'
-          ? { min: 0, max: 2000, step: 1 }
-          : { min: 0, max: 2000, step: 1 }; // mL or custom
-      default:
-        return { min: 0, max: 100, step: 1 };
+    if (key === 'Ch4std') return { min: 0, max: 1, step: 0.001 };
+    if (key === 'ageAtMRI') return { min: 0, max: 120, step: 1 };
+    if (key === 'TIV_entered') {
+      if (inputs.TIV_units === 'mm\u00B3') return { min: 0, max: 2000000, step: 1000 };
+      return { min: 0, max: 2000, step: 1 };
     }
+    return { min: 0, max: 100, step: 1 };
   };
 
   const getTIVScaleToML = useCallback(() => {
     switch (inputs.TIV_units) {
-      case 'mL': return 1;
-      case 'mm\u00B3': return 0.001;
-      case 'L': return 1000;
-      case 'custom': return Number(inputs.TIV_custom_multiplier) || 1;
-      default: return 1;
+      case 'mL': return 1; case 'mm\u00B3': return 0.001; case 'L': return 1000;
+      case 'custom': return Number(inputs.TIV_custom_multiplier) || 1; default: return 1;
     }
   }, [inputs.TIV_units, inputs.TIV_custom_multiplier]);
 
   const isValid = useMemo(() => {
-    const requiredFields = ['Ch4std', 'ageAtMRI', 'sex', 'TIV_entered'];
-    const hasAllFields = requiredFields.every(field => inputs[field as keyof InputData].trim() !== '');
-    const hasNoErrors = Object.keys(errors).length === 0;
-    const noNaNValues = requiredFields.every(field => {
-      const value = inputs[field as keyof InputData];
-      if (field === 'sex') return value !== '';
-      return !isNaN(Number(value));
-    });
-
-    // Also validate custom multiplier if using custom units
-    if (inputs.TIV_units === 'custom') {
-      const customMultiplier = Number(inputs.TIV_custom_multiplier);
-      if (isNaN(customMultiplier) || customMultiplier <= 0) return false;
-    }
-
-    return hasAllFields && hasNoErrors && noNaNValues;
+    const req = ['Ch4std', 'ageAtMRI', 'sex', 'TIV_entered'];
+    const ok = req.every(f => inputs[f as keyof InputData].trim() !== '') && Object.keys(errors).length === 0;
+    if (inputs.TIV_units === 'custom') { const m = Number(inputs.TIV_custom_multiplier); if (isNaN(m) || m <= 0) return false; }
+    return ok;
   }, [inputs, errors]);
 
   const computedResults = useMemo(() => {
     if (!isValid) return null;
-
-    const Ch4std = Number(inputs.Ch4std);
-    const ageAtMRI = Number(inputs.ageAtMRI);
-    const TIV_entered = Number(inputs.TIV_entered);
-    const TIV_scale_to_mL = getTIVScaleToML();
-    const TIV_effective_mL = TIV_entered * TIV_scale_to_mL;
-
-    // Compute scaled participant Ch4 GMD
+    const Ch4std = Number(inputs.Ch4std), ageAtMRI = Number(inputs.ageAtMRI);
+    const TIV_effective_mL = Number(inputs.TIV_entered) * getTIVScaleToML();
     const participantCh4GMD = (((Ch4std - COEF.ctrl_mean) / COEF.ctrl_sd) * COEF.scale_sd) + COEF.scale_mean;
-
-    // Map sex to 0/1 (Female=0, Male=1)
     const sex01 = inputs.sex === 'Male' ? 1 : 0;
-
-    // Compute predicted value using regression
-    const intercept_term = COEF.intercept;
-    const age_term = COEF.age * ageAtMRI;
-    const sex_term = COEF.sex * sex01;
-    const tiv_term = COEF.tiv * TIV_effective_mL;
+    const intercept_term = COEF.intercept, age_term = COEF.age * ageAtMRI;
+    const sex_term = COEF.sex * sex01, tiv_term = COEF.tiv * TIV_effective_mL;
     const predicted = intercept_term + age_term + sex_term + tiv_term;
-
-    // Compute z-score
     const z = (participantCh4GMD - predicted) / COEF.sd_resid;
-
-    const classification = z < COEF.threshold ? 'Low Ch4 GMD' : 'Normal Ch4 GMD';
-
-    return {
-      participantCh4GMD,
-      predicted,
-      z,
-      classification,
-      TIV_effective_mL,
-      TIV_scale_to_mL,
-      sex01,
-      debug: {
-        intercept_term,
-        age_term,
-        sex_term,
-        tiv_term
-      }
-    };
+    return { participantCh4GMD, predicted, z, classification: z < COEF.threshold ? 'Low Ch4 GMD' : 'Normal Ch4 GMD', TIV_effective_mL, TIV_scale_to_mL: getTIVScaleToML(), sex01, debug: { intercept_term, age_term, sex_term, tiv_term } };
   }, [inputs, isValid, getTIVScaleToML]);
 
-  const handleReset = useCallback(() => {
-    setInputs({
-      Ch4std: '',
-      ageAtMRI: '',
-      sex: '',
-      TIV_entered: '',
-      TIV_units: 'mL',
-      TIV_custom_multiplier: '1'
-    });
-    setErrors({});
-  }, []);
+  const handleReset = useCallback(() => { setInputs({ Ch4std: '', ageAtMRI: '', sex: '', TIV_entered: '', TIV_units: 'mL', TIV_custom_multiplier: '1' }); setErrors({}); }, []);
 
   const handleCopyJSON = useCallback(async () => {
     if (!computedResults) return;
-
-    const jsonOutput = {
-      input: {
-        Ch4std: Number(inputs.Ch4std),
-        ageAtMRI: Number(inputs.ageAtMRI),
-        sex: inputs.sex,
-        TIV_entered: Number(inputs.TIV_entered),
-        TIV_units: inputs.TIV_units,
-        TIV_scale_to_mL: computedResults.TIV_scale_to_mL,
-        TIV_effective_mL: computedResults.TIV_effective_mL
-      },
-      computed: {
-        participantCh4GMD: computedResults.participantCh4GMD,
-        predicted: computedResults.predicted,
-        z: computedResults.z,
-        classification: computedResults.classification
-      }
-    };
-
-    try {
-      await navigator.clipboard.writeText(JSON.stringify(jsonOutput, null, 2));
-      toast({
-        title: "JSON Copied",
-        description: "Results have been copied to clipboard"
-      });
-    } catch (err) {
-      toast({
-        title: "Copy Failed",
-        description: "Unable to copy to clipboard",
-        variant: "destructive"
-      });
-    }
+    const out = { input: { Ch4std: Number(inputs.Ch4std), ageAtMRI: Number(inputs.ageAtMRI), sex: inputs.sex, TIV_entered: Number(inputs.TIV_entered), TIV_units: inputs.TIV_units, TIV_scale_to_mL: computedResults.TIV_scale_to_mL, TIV_effective_mL: computedResults.TIV_effective_mL }, computed: { participantCh4GMD: computedResults.participantCh4GMD, predicted: computedResults.predicted, z: computedResults.z, classification: computedResults.classification } };
+    try { await navigator.clipboard.writeText(JSON.stringify(out, null, 2)); toast({ title: "JSON Copied", description: "Results copied to clipboard" }); } catch { toast({ title: "Copy Failed", description: "Unable to copy", variant: "destructive" }); }
   }, [inputs, computedResults, toast]);
 
+  // --- Helper: pill link ---
+  const PillLink = ({ href, children }: { href: string; children: React.ReactNode }) => (
+    <a href={href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold rounded-full transition-colors">{children}</a>
+  );
+
+  // ===================== RENDER =====================
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Brain Background */}
       <div className="absolute inset-0 brain-bg pointer-events-none" />
+      <div className="relative z-10">
 
-      <div className="relative z-10 p-6">
-        <div className="max-w-6xl mx-auto space-y-8">
-          {/* Header */}
-          <div className="text-center space-y-4 animate-fade-in">
-            <div className="flex items-center justify-center gap-4 mb-4">
-              <img
-                src="/lovable-uploads/c42099f0-ebe0-4830-b8bf-202f00856c9b.png"
-                alt="Ch4 Brain Region"
-                className="w-16 h-16 object-contain animate-pulse-glow"
-              />
-            </div>
+        {/* ===== HERO ===== */}
+        <div className="px-6 pt-10 pb-8">
+          <div className="max-w-5xl mx-auto text-center space-y-5 animate-fade-in">
+            <img src="/lovable-uploads/c42099f0-ebe0-4830-b8bf-202f00856c9b.png" alt="Ch4 Brain Region" className="w-20 h-20 mx-auto object-contain animate-pulse-glow" />
             <h1 className="text-4xl lg:text-5xl font-bold medical-heading">
-              PD-MCI Ch4 Subtyping Tool
+              Cholinergic Subtyping of PD-MCI
             </h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              MRI-based cholinergic subtyping of Parkinson's disease with mild cognitive impairment using normative regression modeling of Ch4 gray matter density
+            <p className="text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+              A novel MRI-based framework for subtyping Parkinson's disease with mild cognitive impairment by cholinergic nucleus 4 (Ch4) degeneration
             </p>
-            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-              <span>Nucleus Basalis of Meynert (Ch4) Analysis</span>
-              <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+            <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground">
+              <span className="font-medium">Ahmed Negida, MD, PhD</span>
+              <span className="text-primary">|</span>
+              <span>VCU Parkinson &amp; Movement Disorder Center</span>
+            </div>
+            {/* Nav pills */}
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+              {NAV_ITEMS.map(item => (
+                <button key={item.id} onClick={() => scrollToSection(item.id)} className="px-4 py-2 text-xs font-semibold rounded-full border border-border/50 hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-all">
+                  {item.label}
+                </button>
+              ))}
             </div>
           </div>
+        </div>
 
-          {/* Methodology Section */}
-          <Collapsible open={showMethodology} onOpenChange={setShowMethodology}>
-            <Card className="medical-card border-0 animate-fade-in">
-              <CollapsibleTrigger asChild>
-                <CardHeader className="cursor-pointer hover:bg-muted/20 transition-colors rounded-t-xl pb-4">
-                  <CardTitle className="text-xl flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <span className="text-primary font-bold text-sm">M</span>
-                      </div>
-                      Methodology
-                    </div>
-                    {showMethodology ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-                  </CardTitle>
-                </CardHeader>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
+        <div className="px-6 pb-12">
+          <div className="max-w-5xl mx-auto space-y-12">
+
+            {/* ===== ABOUT ===== */}
+            <div ref={sectionRefs.about as React.RefObject<HTMLDivElement>} className="scroll-mt-8">
+              <Card className="medical-card border-0">
+                <CardHeader><CardTitle className="text-2xl">About This Work</CardTitle></CardHeader>
                 <CardContent className="space-y-4 text-sm text-muted-foreground leading-relaxed">
                   <p>
-                    This tool classifies PD-MCI patients based on the degree of cholinergic Ch4 (nucleus basalis of Meynert) degeneration relative to a normative model derived from healthy controls. The framework was developed using data from the Parkinson's Progression Markers Initiative (PPMI).
+                    Parkinson's disease with mild cognitive impairment (PD-MCI) is clinically heterogeneous, yet current classification schemes are predominantly motor-based and do not capture the cholinergic dimension of disease heterogeneity. The <strong>nucleus basalis of Meynert (NBM/Ch4)</strong> is the major source of cortical acetylcholine and is selectively vulnerable to alpha-synuclein pathology in PD.
                   </p>
+                  <p>
+                    We developed a <strong>normative regression-based subtyping framework</strong> that classifies PD-MCI patients as having <strong>Low Ch4 GMD</strong> (disproportionate cholinergic degeneration) or <strong>Normal Ch4 GMD</strong> based on structural MRI, after adjusting for the effects of age, sex, and total intracranial volume. This framework was derived using data from the <strong>Parkinson's Progression Markers Initiative (PPMI)</strong>.
+                  </p>
+                  <p>
+                    The work was first presented as a <strong>poster at the International Congress of Parkinson's Disease and Movement Disorders (MDS 2024)</strong>, then selected for an <strong>oral platform presentation at the American Academy of Neurology Annual Meeting (AAN 2025)</strong>, covered by <strong>Neurology Today</strong>, and published as a full article in <strong><em>Parkinsonism &amp; Related Disorders</em></strong>.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
 
-                  <div className="space-y-3">
-                    <h4 className="font-semibold text-foreground">Step 1: Scaling</h4>
-                    <p>
-                      The standardized Ch4 GMD (extracted from T1-weighted MRI using the cytoarchitectonic maps of Zaborszky et al.) is transformed to a common metric using healthy control reference values (mean = 0.399, SD = 0.039):
-                    </p>
-                    <div className="bg-muted/30 p-3 rounded-lg font-mono text-xs">
-                      Scaled Ch4 GMD = ((Ch4<sub>std</sub> - 0.399) / 0.039) x 3 + 10
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <h4 className="font-semibold text-foreground">Step 2: Normative Prediction</h4>
-                    <p>
-                      A predicted Ch4 GMD is computed from a multiple linear regression model adjusting for age, sex (Male = 1, Female = 0), and total intracranial volume (TIV in mL):
-                    </p>
-                    <div className="bg-muted/30 p-3 rounded-lg font-mono text-xs">
-                      Predicted = 1.579 + (-0.108 x Age) + (0.865 x Sex) + (0.010 x TIV)
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <h4 className="font-semibold text-foreground">Step 3: Z-score and Classification</h4>
-                    <p>
-                      The deviation between observed and predicted values is expressed as a z-score (SD<sub>residual</sub> = 2.225). Patients with z &lt; -1.0 are classified as <strong>Low Ch4 GMD</strong>, denoting disproportionate cholinergic degeneration beyond that expected for their demographic profile.
-                    </p>
-                    <div className="bg-muted/30 p-3 rounded-lg font-mono text-xs">
-                      Z = (Scaled Ch4 GMD - Predicted) / 2.225
-                    </div>
-                  </div>
-
-                  <div className="mt-4 p-4 bg-primary/5 border border-primary/10 rounded-lg space-y-2">
-                    <h4 className="font-semibold text-foreground">Ch4 GMD Extraction</h4>
-                    <p>
-                      Ch4 GMD should be extracted from T1-weighted MRI using the stereotactic cytoarchitectonic maps of Zaborszky et al. (2008) via established VBM pipelines (e.g., CAT12/SPM). The input to this tool is the mean gray matter density value within the Ch4 (NBM) region of interest.
-                    </p>
+            {/* ===== KEY FINDINGS ===== */}
+            <div ref={sectionRefs.findings as React.RefObject<HTMLDivElement>} className="scroll-mt-8">
+              <Card className="medical-card border-0">
+                <CardHeader><CardTitle className="text-2xl">Key Findings</CardTitle></CardHeader>
+                <CardContent>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {[
+                      { title: 'Distinct Clinical Profile', desc: 'PD-MCI patients with Low Ch4 GMD have significantly worse MDS-UPDRS total and subscale scores, greater autonomic dysfunction, and reduced olfaction (all P < 0.05).', color: 'bg-blue-500/10 border-blue-500/20' },
+                      { title: 'Faster Cognitive Decline', desc: 'The Low Ch4 GMD subgroup progresses significantly faster to cognitive milestones on Kaplan\u2013Meier survival analysis (log-rank P = 0.0017).', color: 'bg-red-500/10 border-red-500/20' },
+                      { title: 'Overlap with Diffuse Malignant PD', desc: '51.6% of Low Ch4 GMD patients were classified as diffuse malignant PD, compared with 23.4% of the Normal Ch4 GMD group (P < 0.01).', color: 'bg-amber-500/10 border-amber-500/20' },
+                      { title: 'Outperforms Existing Subtypes', desc: 'Ch4 subtyping provided greater prognostic accuracy for cognitive progression than tremor-dominant/PIGD, brain-first/body-first, and diffuse-malignant classifications.', color: 'bg-green-500/10 border-green-500/20' },
+                    ].map(f => (
+                      <div key={f.title} className={`p-5 rounded-xl border ${f.color}`}>
+                        <h4 className="font-semibold text-foreground mb-2">{f.title}</h4>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
-              </CollapsibleContent>
-            </Card>
-          </Collapsible>
+              </Card>
+            </div>
 
-          <div className="grid lg:grid-cols-2 gap-8">
-            {/* Inputs Card */}
-            <Card className="medical-card border-0 animate-slide-up">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-2xl flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <span className="text-primary font-bold">📊</span>
-                  </div>
-                  Patient Inputs
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <Label htmlFor="Ch4std" className="text-base font-medium">Standardized Ch4 GMD</Label>
-                  <div className="space-y-4">
-                    <Input
-                      id="Ch4std"
-                      type="number"
-                      step="any"
-                      value={inputs.Ch4std}
-                      onChange={(e) => handleInputChange('Ch4std', e.target.value)}
-                      className={`h-12 text-lg ${errors.Ch4std ? 'border-destructive focus:ring-destructive' : 'focus:ring-primary'} transition-all duration-200`}
-                      aria-describedby="Ch4std-error"
-                      placeholder="0.400"
-                    />
-                    <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
-                      <div className="flex justify-between text-sm text-muted-foreground font-mono">
-                        <span>0.000</span>
-                        <span className="font-semibold text-primary">{inputs.Ch4std || '0.000'}</span>
-                        <span>1.000</span>
+            {/* ===== SUBTYPING TOOL ===== */}
+            <div ref={sectionRefs.tool as React.RefObject<HTMLDivElement>} className="scroll-mt-8">
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-bold text-foreground">Ch4 Subtyping Calculator</h2>
+                <p className="text-sm text-muted-foreground mt-1">Enter patient data below to compute the Ch4 GMD z-score and classification</p>
+              </div>
+              <div className="grid lg:grid-cols-2 gap-8">
+                {/* Inputs Card */}
+                <Card className="medical-card border-0">
+                  <CardHeader className="pb-4"><CardTitle className="text-xl">Patient Inputs</CardTitle></CardHeader>
+                  <CardContent className="space-y-5">
+                    {/* Ch4 GMD */}
+                    <div className="space-y-3">
+                      <Label htmlFor="Ch4std" className="text-sm font-medium">Standardized Ch4 GMD</Label>
+                      <Input id="Ch4std" type="number" step="any" value={inputs.Ch4std} onChange={e => handleInputChange('Ch4std', e.target.value)} className={`h-11 ${errors.Ch4std ? 'border-destructive' : ''}`} placeholder="0.400" />
+                      <div className="p-3 bg-muted/30 rounded-lg">
+                        <div className="flex justify-between text-xs text-muted-foreground font-mono mb-2"><span>0.000</span><span className="text-primary font-semibold">{inputs.Ch4std || '0.000'}</span><span>1.000</span></div>
+                        <Slider value={[Number(inputs.Ch4std) || 0]} onValueChange={v => handleSliderChange('Ch4std', v)} min={0} max={1} step={0.001} />
                       </div>
-                      <Slider
-                        value={[Number(inputs.Ch4std) || 0]}
-                        onValueChange={(value) => handleSliderChange('Ch4std', value)}
-                        min={0}
-                        max={1}
-                        step={0.001}
-                        className="w-full"
-                      />
+                      {errors.Ch4std && <p className="text-xs text-destructive font-medium">{errors.Ch4std}</p>}
                     </div>
-                  </div>
-                  {errors.Ch4std && (
-                    <p id="Ch4std-error" className="text-sm text-destructive font-medium animate-fade-in" role="alert">
-                      {errors.Ch4std}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-4">
-                  <Label htmlFor="ageAtMRI" className="text-base font-medium">Age at MRI (years)</Label>
-                  <div className="space-y-4">
-                    <Input
-                      id="ageAtMRI"
-                      type="number"
-                      step="any"
-                      value={inputs.ageAtMRI}
-                      onChange={(e) => handleInputChange('ageAtMRI', e.target.value)}
-                      className={`h-12 text-lg ${errors.ageAtMRI ? 'border-destructive focus:ring-destructive' : 'focus:ring-primary'} transition-all duration-200`}
-                      aria-describedby="ageAtMRI-help ageAtMRI-error"
-                      placeholder="65"
-                    />
-                    <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
-                      <div className="flex justify-between text-sm text-muted-foreground font-mono">
-                        <span>0</span>
-                        <span className="font-semibold text-primary">{inputs.ageAtMRI || '0'} years</span>
-                        <span>120</span>
+                    {/* Age */}
+                    <div className="space-y-3">
+                      <Label htmlFor="ageAtMRI" className="text-sm font-medium">Age at MRI (years)</Label>
+                      <Input id="ageAtMRI" type="number" step="any" value={inputs.ageAtMRI} onChange={e => handleInputChange('ageAtMRI', e.target.value)} className={`h-11 ${errors.ageAtMRI ? 'border-destructive' : ''}`} placeholder="65" />
+                      <div className="p-3 bg-muted/30 rounded-lg">
+                        <div className="flex justify-between text-xs text-muted-foreground font-mono mb-2"><span>0</span><span className="text-primary font-semibold">{inputs.ageAtMRI || '0'} yrs</span><span>120</span></div>
+                        <Slider value={[Number(inputs.ageAtMRI) || 0]} onValueChange={v => handleSliderChange('ageAtMRI', v)} min={0} max={120} step={1} />
                       </div>
-                      <Slider
-                        value={[Number(inputs.ageAtMRI) || 0]}
-                        onValueChange={(value) => handleSliderChange('ageAtMRI', value)}
-                        min={0}
-                        max={120}
-                        step={1}
-                        className="w-full"
-                      />
+                      {errors.ageAtMRI && <p className="text-xs text-destructive font-medium">{errors.ageAtMRI}</p>}
                     </div>
-                  </div>
-                  <p id="ageAtMRI-help" className="text-sm text-muted-foreground">
-                    Age in years at time of MRI scan
-                  </p>
-                  {errors.ageAtMRI && (
-                    <p id="ageAtMRI-error" className="text-sm text-destructive font-medium animate-fade-in" role="alert">
-                      {errors.ageAtMRI}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-3">
-                  <Label htmlFor="sex" className="text-base font-medium">Sex</Label>
-                  <Select value={inputs.sex} onValueChange={(value) => handleInputChange('sex', value)}>
-                    <SelectTrigger className={`h-12 ${errors.sex ? 'border-destructive' : ''}`} aria-describedby="sex-error">
-                      <SelectValue placeholder="Select sex" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Male">Male</SelectItem>
-                      <SelectItem value="Female">Female</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {errors.sex && (
-                    <p id="sex-error" className="text-sm text-destructive font-medium animate-fade-in" role="alert">
-                      {errors.sex}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-4">
-                  <Label htmlFor="TIV_entered" className="text-base font-medium">Total Intracranial Volume (TIV)</Label>
-                  <div className="space-y-4">
-                    <div className="flex gap-3">
-                      <Input
-                        id="TIV_entered"
-                        type="number"
-                        step="any"
-                        value={inputs.TIV_entered}
-                        onChange={(e) => handleInputChange('TIV_entered', e.target.value)}
-                        className={`h-12 text-lg flex-1 ${errors.TIV_entered ? 'border-destructive focus:ring-destructive' : 'focus:ring-primary'} transition-all duration-200`}
-                        aria-describedby="TIV_entered-help TIV_entered-error"
-                        placeholder="1500"
-                      />
-                      <Select value={inputs.TIV_units} onValueChange={(value) => handleInputChange('TIV_units', value)}>
-                        <SelectTrigger className="w-28 h-12">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="mL">mL</SelectItem>
-                          <SelectItem value="mm³">mm³</SelectItem>
-                          <SelectItem value="L">L</SelectItem>
-                          <SelectItem value="custom">custom</SelectItem>
-                        </SelectContent>
+                    {/* Sex */}
+                    <div className="space-y-3">
+                      <Label className="text-sm font-medium">Sex</Label>
+                      <Select value={inputs.sex} onValueChange={v => handleInputChange('sex', v)}>
+                        <SelectTrigger className="h-11"><SelectValue placeholder="Select sex" /></SelectTrigger>
+                        <SelectContent><SelectItem value="Male">Male</SelectItem><SelectItem value="Female">Female</SelectItem></SelectContent>
                       </Select>
+                      {errors.sex && <p className="text-xs text-destructive font-medium">{errors.sex}</p>}
                     </div>
+                    {/* TIV */}
+                    <div className="space-y-3">
+                      <Label htmlFor="TIV_entered" className="text-sm font-medium">Total Intracranial Volume (TIV)</Label>
+                      <div className="flex gap-2">
+                        <Input id="TIV_entered" type="number" step="any" value={inputs.TIV_entered} onChange={e => handleInputChange('TIV_entered', e.target.value)} className={`h-11 flex-1 ${errors.TIV_entered ? 'border-destructive' : ''}`} placeholder="1500" />
+                        <Select value={inputs.TIV_units} onValueChange={v => handleInputChange('TIV_units', v)}>
+                          <SelectTrigger className="w-24 h-11"><SelectValue /></SelectTrigger>
+                          <SelectContent><SelectItem value="mL">mL</SelectItem><SelectItem value="mm³">mm³</SelectItem><SelectItem value="L">L</SelectItem><SelectItem value="custom">custom</SelectItem></SelectContent>
+                        </Select>
+                      </div>
+                      {inputs.TIV_units === 'custom' && (
+                        <div className="p-3 bg-warning/5 border border-warning/20 rounded-lg space-y-2">
+                          <Label htmlFor="TIV_custom_multiplier" className="text-xs">Custom multiplier to mL</Label>
+                          <Input id="TIV_custom_multiplier" type="number" step="any" value={inputs.TIV_custom_multiplier} onChange={e => handleInputChange('TIV_custom_multiplier', e.target.value)} className="h-9" placeholder="1" />
+                        </div>
+                      )}
+                      <div className="p-3 bg-muted/30 rounded-lg">
+                        <div className="flex justify-between text-xs text-muted-foreground font-mono mb-2"><span>0</span><span className="text-primary font-semibold">{inputs.TIV_entered ? `${Number(inputs.TIV_entered).toLocaleString()} ${inputs.TIV_units}` : `0 ${inputs.TIV_units}`}</span><span>{getSliderRange('TIV_entered').max.toLocaleString()}</span></div>
+                        <Slider value={[Number(inputs.TIV_entered) || 0]} onValueChange={v => handleSliderChange('TIV_entered', v)} {...getSliderRange('TIV_entered')} />
+                      </div>
+                      {errors.TIV_entered && <p className="text-xs text-destructive font-medium">{errors.TIV_entered}</p>}
+                    </div>
+                    <Button onClick={handleReset} variant="outline" className="w-full h-10 text-sm hover:bg-destructive/10 hover:text-destructive transition-colors">Reset All Fields</Button>
+                  </CardContent>
+                </Card>
 
-                    {inputs.TIV_units === 'custom' && (
-                      <div className="space-y-3 p-4 bg-warning/5 border border-warning/20 rounded-lg">
-                        <Label htmlFor="TIV_custom_multiplier" className="text-sm font-medium text-warning-foreground">Custom multiplier to convert to mL</Label>
-                        <Input
-                          id="TIV_custom_multiplier"
-                          type="number"
-                          step="any"
-                          value={inputs.TIV_custom_multiplier}
-                          onChange={(e) => handleInputChange('TIV_custom_multiplier', e.target.value)}
-                          className={`h-10 ${errors.TIV_custom_multiplier ? 'border-destructive' : ''}`}
-                          placeholder="1"
-                        />
-                        {errors.TIV_custom_multiplier && (
-                          <p className="text-sm text-destructive font-medium animate-fade-in" role="alert">
-                            {errors.TIV_custom_multiplier}
-                          </p>
-                        )}
+                {/* Results Card */}
+                <Card className="medical-card border-0">
+                  <CardHeader className="pb-4"><CardTitle className="text-xl">Results</CardTitle></CardHeader>
+                  <CardContent className="space-y-5">
+                    {computedResults ? (
+                      <div className="space-y-5 animate-fade-in">
+                        <div className="grid gap-3">
+                          {[
+                            { label: 'Participant Ch4 GMD (scaled)', value: computedResults.participantCh4GMD.toFixed(4) },
+                            { label: 'Predicted Value', value: computedResults.predicted.toFixed(4) },
+                            { label: 'Z-score', value: computedResults.z.toFixed(4) },
+                          ].map(r => (
+                            <div key={r.label} className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
+                              <span className="text-sm font-medium">{r.label}</span>
+                              <span className="font-mono text-primary font-semibold">{r.value}</span>
+                            </div>
+                          ))}
+                          <div className="flex justify-between items-center p-5 bg-gradient-to-r from-muted/30 to-muted/50 rounded-xl border">
+                            <span className="text-base font-semibold">Classification</span>
+                            <div className={`px-5 py-2.5 rounded-full font-bold text-sm ${computedResults.classification === 'Normal Ch4 GMD' ? 'bg-success text-success-foreground' : 'bg-destructive text-destructive-foreground'}`}>
+                              {computedResults.classification}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="p-4 bg-muted/20 rounded-lg text-sm text-muted-foreground leading-relaxed">
+                          <p className="font-semibold text-foreground mb-1.5">Interpretation</p>
+                          {computedResults.classification === 'Low Ch4 GMD' ? (
+                            <p>This patient's Ch4 GMD falls &gt;1 SD below the normative prediction (z = {computedResults.z.toFixed(2)}), suggesting disproportionate cholinergic degeneration. This profile has been associated with more aggressive cognitive decline and may identify patients who preferentially benefit from cholinergic-targeted interventions.</p>
+                          ) : (
+                            <p>This patient's Ch4 GMD is within the expected range (z = {computedResults.z.toFixed(2)}). Ch4 cholinergic degeneration is not disproportionately advanced for their demographic profile. Cognitive impairment may be driven by non-cholinergic mechanisms.</p>
+                          )}
+                        </div>
+                        <Collapsible open={showDebug} onOpenChange={setShowDebug}>
+                          <CollapsibleTrigger asChild>
+                            <Button variant="ghost" className="w-full justify-between p-3 h-auto bg-muted/20 hover:bg-muted/40 text-sm">
+                              <span>Debug Panel</span>{showDebug ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                            </Button>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent className="pt-3 border-t">
+                            <div className="grid gap-1.5 text-xs bg-muted/20 p-3 rounded-lg font-mono">
+                              {[['Intercept', computedResults.debug.intercept_term], ['Age term', computedResults.debug.age_term], ['Sex term', computedResults.debug.sex_term], ['TIV term', computedResults.debug.tiv_term], ['Effective TIV (mL)', computedResults.TIV_effective_mL], ['Sex (0/1)', computedResults.sex01]].map(([l, v]) => (
+                                <div key={String(l)} className="flex justify-between border-b border-border/20 pb-1"><span>{String(l)}</span><span className="text-primary font-semibold">{typeof v === 'number' ? v.toFixed(4) : v}</span></div>
+                              ))}
+                            </div>
+                          </CollapsibleContent>
+                        </Collapsible>
+                        <Button onClick={handleCopyJSON} className="w-full h-10 text-sm font-semibold bg-primary hover:bg-primary-glow transition-all medical-glow">Copy JSON Results</Button>
+                      </div>
+                    ) : (
+                      <div className="text-center py-16 space-y-3">
+                        <div className="w-16 h-16 mx-auto bg-muted/30 rounded-full flex items-center justify-center"><span className="text-2xl opacity-40">🔬</span></div>
+                        <p className="text-sm text-muted-foreground">Complete all fields to see results</p>
                       </div>
                     )}
-
-                    <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
-                      <div className="flex justify-between text-sm text-muted-foreground font-mono">
-                        <span>0</span>
-                        <span className="font-semibold text-primary">{inputs.TIV_entered ? `${Number(inputs.TIV_entered).toLocaleString()} ${inputs.TIV_units}` : `0 ${inputs.TIV_units}`}</span>
-                        <span>{getSliderRange('TIV_entered').max.toLocaleString()}</span>
-                      </div>
-                      <Slider
-                        value={[Number(inputs.TIV_entered) || 0]}
-                        onValueChange={(value) => handleSliderChange('TIV_entered', value)}
-                        min={getSliderRange('TIV_entered').min}
-                        max={getSliderRange('TIV_entered').max}
-                        step={getSliderRange('TIV_entered').step}
-                        className="w-full"
-                      />
-                    </div>
-                  </div>
-                  <p id="TIV_entered-help" className="text-sm text-muted-foreground">
-                    Enter the TIV value and select appropriate units
-                  </p>
-                  {errors.TIV_entered && (
-                    <p id="TIV_entered-error" className="text-sm text-destructive font-medium animate-fade-in" role="alert">
-                      {errors.TIV_entered}
-                    </p>
-                  )}
-                </div>
-
-                <Button onClick={handleReset} variant="outline" className="w-full h-12 text-base hover:bg-destructive/10 hover:text-destructive transition-colors">
-                  Reset All Fields
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Results Card */}
-            <Card className="medical-card border-0 animate-slide-up" style={{ animationDelay: '0.1s' }}>
-              <CardHeader className="pb-4">
-                <CardTitle className="text-2xl flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <span className="text-primary font-bold">🧠</span>
-                  </div>
-                  Analysis Results
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {computedResults ? (
-                  <div className="space-y-6 animate-fade-in">
-                    <div className="grid gap-4">
-                      <div className="flex justify-between items-center p-4 bg-muted/30 rounded-lg">
-                        <span className="text-base font-medium">Participant Ch4 GMD (scaled):</span>
-                        <span className="mono-data text-lg text-primary">{computedResults.participantCh4GMD.toFixed(4)}</span>
-                      </div>
-
-                      <div className="flex justify-between items-center p-4 bg-muted/30 rounded-lg">
-                        <span className="text-base font-medium">Predicted Value:</span>
-                        <span className="mono-data text-lg text-primary">{computedResults.predicted.toFixed(4)}</span>
-                      </div>
-
-                      <div className="flex justify-between items-center p-4 bg-muted/30 rounded-lg">
-                        <span className="text-base font-medium">Z-score:</span>
-                        <span className="mono-data text-lg text-primary">{computedResults.z.toFixed(4)}</span>
-                      </div>
-
-                      <div className="flex justify-between items-center p-6 bg-gradient-to-r from-muted/30 to-muted/50 rounded-xl border">
-                        <span className="text-lg font-semibold">Classification:</span>
-                        <div
-                          className={`px-6 py-3 rounded-full font-bold text-base transition-all duration-300 ${
-                            computedResults.classification === 'Normal Ch4 GMD'
-                              ? 'bg-success text-success-foreground animate-pulse-glow'
-                              : 'bg-destructive text-destructive-foreground animate-pulse-glow'
-                          }`}
-                        >
-                          {computedResults.classification}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Interpretation */}
-                    <div className="p-4 bg-muted/20 rounded-lg text-sm text-muted-foreground leading-relaxed">
-                      <p className="font-semibold text-foreground mb-2">Interpretation:</p>
-                      {computedResults.classification === 'Low Ch4 GMD' ? (
-                        <p>
-                          This patient's Ch4 gray matter density falls more than 1 standard deviation below the value predicted by the normative model (z = {computedResults.z.toFixed(2)}), suggesting disproportionate cholinergic Ch4 degeneration beyond that expected for their age, sex, and intracranial volume. This profile has been associated with more aggressive cognitive decline and may identify patients who could preferentially benefit from cholinergic-targeted interventions.
-                        </p>
-                      ) : (
-                        <p>
-                          This patient's Ch4 gray matter density is within the expected range based on the normative model (z = {computedResults.z.toFixed(2)}), suggesting that Ch4 cholinergic degeneration is not disproportionately advanced for their demographic profile. Cognitive impairment in this subgroup may be driven by non-cholinergic mechanisms.
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Debug Panel */}
-                    <Collapsible open={showDebug} onOpenChange={setShowDebug}>
-                      <CollapsibleTrigger asChild>
-                        <Button variant="ghost" className="w-full justify-between p-4 h-auto bg-muted/20 hover:bg-muted/40 transition-colors">
-                          <span className="font-medium">Debug Panel</span>
-                          {showDebug ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-                        </Button>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="space-y-3 pt-4 border-t animate-fade-in">
-                        <div className="grid gap-2 text-sm bg-muted/20 p-4 rounded-lg font-mono">
-                          <div className="flex justify-between border-b border-border/30 pb-1">
-                            <span>Intercept term:</span>
-                            <span className="text-primary font-semibold">{computedResults.debug.intercept_term.toFixed(4)}</span>
-                          </div>
-                          <div className="flex justify-between border-b border-border/30 pb-1">
-                            <span>Age term:</span>
-                            <span className="text-primary font-semibold">{computedResults.debug.age_term.toFixed(4)}</span>
-                          </div>
-                          <div className="flex justify-between border-b border-border/30 pb-1">
-                            <span>Sex term:</span>
-                            <span className="text-primary font-semibold">{computedResults.debug.sex_term.toFixed(4)}</span>
-                          </div>
-                          <div className="flex justify-between border-b border-border/30 pb-1">
-                            <span>TIV term:</span>
-                            <span className="text-primary font-semibold">{computedResults.debug.tiv_term.toFixed(4)}</span>
-                          </div>
-                          <div className="flex justify-between border-b border-border/30 pb-1">
-                            <span>Effective TIV (mL):</span>
-                            <span className="text-accent font-semibold">{computedResults.TIV_effective_mL.toFixed(1)}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Sex mapping (0/1):</span>
-                            <span className="text-accent font-semibold">{computedResults.sex01}</span>
-                          </div>
-                        </div>
-                      </CollapsibleContent>
-                    </Collapsible>
-
-                    <Button
-                      onClick={handleCopyJSON}
-                      className="w-full h-12 text-base font-semibold bg-primary hover:bg-primary-glow transition-all duration-300 medical-glow"
-                    >
-                      Copy JSON Results
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="text-center py-12 space-y-4">
-                    <div className="w-20 h-20 mx-auto bg-muted/30 rounded-full flex items-center justify-center">
-                      <span className="text-3xl opacity-50">🔬</span>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-lg font-medium text-muted-foreground">
-                        Complete all required fields to see results
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Enter patient data above to perform Ch4 GMD analysis
-                      </p>
-                    </div>
-                    <Button disabled className="w-full h-12 text-base">
-                      Copy JSON Results
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Footer */}
-          <div className="text-center space-y-6 animate-fade-in" style={{ animationDelay: '0.3s' }}>
-            <div className="p-6 bg-warning/20 border border-warning/30 rounded-xl">
-              <p className="text-base text-black font-medium italic">
-                Research decision-support only; not standalone for clinical care.
-              </p>
-            </div>
-
-            {/* Citation */}
-            <Card className="medical-card border-0">
-              <CardContent className="p-6 space-y-3">
-                <h3 className="text-lg font-semibold text-foreground">Citation</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  If you use this tool in your research, please cite:
-                </p>
-                <div className="p-4 bg-muted/30 rounded-lg text-sm text-muted-foreground leading-relaxed">
-                  Negida A, Vohra HZ, Lageman SK, Mukhopadhyay N, Berman BD, Weintraub D, Barrett MJ. Parkinson's disease mild cognitive impairment with MRI evidence of cholinergic nucleus 4 degeneration: A new subtype? <em>Parkinsonism Relat Disord.</em> 2025;141:108072.
-                </div>
-                <div className="flex flex-wrap items-center justify-center gap-3 pt-3">
-                  <a
-                    href="https://doi.org/10.1016/j.parkreldis.2025.108072"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold rounded-full transition-colors"
-                  >
-                    Full Text (DOI)
-                  </a>
-                  <a
-                    href="https://pubmed.ncbi.nlm.nih.gov/41106089/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold rounded-full transition-colors"
-                  >
-                    PubMed
-                  </a>
-                  <a
-                    href="https://github.com/Negidamd/ch4-subtyper"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold rounded-full transition-colors"
-                  >
-                    GitHub
-                  </a>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Creator Information */}
-            <div className="p-6 medical-card rounded-xl">
-              <div className="space-y-3">
-                <p className="text-lg font-semibold text-foreground">
-                  Created by
-                </p>
-                <div className="space-y-1">
-                  <p className="text-xl font-bold medical-heading">
-                    Ahmed Negida, MD, PhD
-                  </p>
-                  <p className="text-base text-muted-foreground font-medium">
-                    Parkinson and Movement Disorder Center
-                  </p>
-                  <p className="text-base text-muted-foreground">
-                    VCU Neurology, Richmond, VA
-                  </p>
-                  <p className="text-sm text-muted-foreground font-mono mt-3 p-2 bg-muted/20 rounded-lg">
-                    ahmed[dot]said[dot]negida[at]gmail[dot]com
-                  </p>
-                </div>
+                  </CardContent>
+                </Card>
+              </div>
+              <div className="mt-4 p-4 bg-warning/20 border border-warning/30 rounded-xl text-center">
+                <p className="text-sm text-black font-medium italic">Research decision-support only; not standalone for clinical care.</p>
               </div>
             </div>
+
+            {/* ===== METHODOLOGY ===== */}
+            <div ref={sectionRefs.methodology as React.RefObject<HTMLDivElement>} className="scroll-mt-8">
+              <Card className="medical-card border-0">
+                <CardHeader><CardTitle className="text-2xl">Methodology</CardTitle></CardHeader>
+                <CardContent className="space-y-6 text-sm text-muted-foreground leading-relaxed">
+                  <div className="grid md:grid-cols-3 gap-6">
+                    <div className="p-5 bg-muted/20 rounded-xl space-y-3">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold">1</div>
+                      <h4 className="font-semibold text-foreground">Scaling</h4>
+                      <p>Ch4 GMD (from T1-MRI via Zaborszky et al. cytoarchitectonic maps) is scaled using healthy control reference values (mean = 0.399, SD = 0.039):</p>
+                      <div className="bg-background/60 p-2.5 rounded font-mono text-xs">Scaled = ((Ch4 - 0.399) / 0.039) &times; 3 + 10</div>
+                    </div>
+                    <div className="p-5 bg-muted/20 rounded-xl space-y-3">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold">2</div>
+                      <h4 className="font-semibold text-foreground">Normative Prediction</h4>
+                      <p>A predicted Ch4 GMD is computed from a regression model adjusting for age, sex (M=1, F=0), and TIV:</p>
+                      <div className="bg-background/60 p-2.5 rounded font-mono text-xs">Pred = 1.579 + (-0.108 &times; Age) + (0.865 &times; Sex) + (0.010 &times; TIV)</div>
+                    </div>
+                    <div className="p-5 bg-muted/20 rounded-xl space-y-3">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold">3</div>
+                      <h4 className="font-semibold text-foreground">Z-score &amp; Classification</h4>
+                      <p>Deviation expressed as z-score (SD<sub>res</sub> = 2.225). Patients with z &lt; &minus;1.0 are classified <strong>Low Ch4 GMD</strong>:</p>
+                      <div className="bg-background/60 p-2.5 rounded font-mono text-xs">Z = (Scaled - Predicted) / 2.225</div>
+                    </div>
+                  </div>
+                  <div className="p-4 bg-primary/5 border border-primary/10 rounded-lg">
+                    <h4 className="font-semibold text-foreground mb-1">Ch4 GMD Extraction</h4>
+                    <p>Ch4 GMD should be extracted from T1-weighted MRI using the stereotactic cytoarchitectonic maps of Zaborszky et al. (2008) via VBM pipelines (e.g., CAT12/SPM). The input is the mean gray matter density within the Ch4 (NBM) region of interest.</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* ===== PUBLICATIONS ===== */}
+            <div ref={sectionRefs.publications as React.RefObject<HTMLDivElement>} className="scroll-mt-8">
+              <Card className="medical-card border-0">
+                <CardHeader><CardTitle className="text-2xl">Publications</CardTitle></CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Full article */}
+                  <div className="p-5 rounded-xl border border-primary/20 bg-primary/5 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 bg-primary text-primary-foreground text-xs font-bold rounded">Full Article</span>
+                      <span className="text-xs text-muted-foreground">2025</span>
+                    </div>
+                    <h4 className="font-semibold text-foreground leading-snug">
+                      Parkinson's disease mild cognitive impairment with MRI evidence of cholinergic nucleus 4 degeneration: A new subtype?
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      Negida A, Vohra HZ, Lageman SK, Mukhopadhyay N, Berman BD, Weintraub D, Barrett MJ.
+                    </p>
+                    <p className="text-sm text-muted-foreground italic">Parkinsonism &amp; Related Disorders. 2025;141:108072.</p>
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      <PillLink href="https://doi.org/10.1016/j.parkreldis.2025.108072">DOI</PillLink>
+                      <PillLink href="https://pubmed.ncbi.nlm.nih.gov/41106089/">PubMed</PillLink>
+                      <PillLink href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12949478/">PMC Full Text</PillLink>
+                    </div>
+                  </div>
+
+                  {/* AAN abstract */}
+                  <div className="p-5 rounded-xl border border-border/50 bg-muted/10 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 bg-muted text-muted-foreground text-xs font-bold rounded">Abstract</span>
+                      <span className="text-xs text-muted-foreground">AAN 2025</span>
+                    </div>
+                    <h4 className="font-semibold text-foreground leading-snug">
+                      Parkinson's Disease Mild Cognitive Impairment with MRI evidence of Cholinergic Nucleus 4 Degeneration: A New Subtype?
+                    </h4>
+                    <p className="text-sm text-muted-foreground italic">Neurology. 2025;104(7 Supplement 1). Oral Presentation S32.005.</p>
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      <PillLink href="https://www.neurology.org/doi/10.1212/WNL.0000000000212426">Neurology Abstract</PillLink>
+                    </div>
+                  </div>
+
+                  {/* MDS abstract */}
+                  <div className="p-5 rounded-xl border border-border/50 bg-muted/10 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 bg-muted text-muted-foreground text-xs font-bold rounded">Abstract</span>
+                      <span className="text-xs text-muted-foreground">MDS 2024</span>
+                    </div>
+                    <h4 className="font-semibold text-foreground leading-snug">
+                      Subtyping Parkinson's Disease Mild Cognitive Impairment (PD-MCI) by Cholinergic Degeneration
+                    </h4>
+                    <p className="text-sm text-muted-foreground italic">International Congress of Parkinson's Disease and Movement Disorders 2024. Poster Presentation.</p>
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      <PillLink href="https://www.mdsabstracts.org/abstract/subtyping-parkinsons-disease-mild-cognitive-impairment-pd-mci-by-cholinergic-degeneration/">MDS Abstract</PillLink>
+                    </div>
+                  </div>
+
+                  {/* Media */}
+                  <div className="p-5 rounded-xl border border-amber-500/20 bg-amber-500/5 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 bg-amber-500/20 text-amber-700 text-xs font-bold rounded">Media Coverage</span>
+                    </div>
+                    <h4 className="font-semibold text-foreground leading-snug">Neurology Today (American Academy of Neurology)</h4>
+                    <p className="text-sm text-muted-foreground">Coverage of AAN 2025 oral presentation findings.</p>
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      <PillLink href="https://neurologytoday.aan.com/doi/10.1212/breakingnews.1581">Read Article</PillLink>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* ===== PRESENTATIONS (Photos) ===== */}
+            <div ref={sectionRefs.presentations as React.RefObject<HTMLDivElement>} className="scroll-mt-8">
+              <Card className="medical-card border-0">
+                <CardHeader><CardTitle className="text-2xl">Conference Presentations</CardTitle></CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {/* MDS 2024 */}
+                    <div className="space-y-3">
+                      <div className="aspect-[4/3] rounded-xl overflow-hidden bg-muted/30 border">
+                        <img src="/images/mds-2024-poster.jpg" alt="MDS 2024 Poster Presentation - Subtyping PD-MCI by Cholinergic Degeneration" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center text-muted-foreground text-sm p-4 text-center">MDS 2024 Poster Photo<br/><span class="text-xs opacity-60 mt-1 block">Add image to /public/images/mds-2024-poster.jpg</span></div>'; }} />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-foreground">MDS International Congress 2024</h4>
+                        <p className="text-sm text-muted-foreground">Poster Presentation &mdash; Philadelphia, PA</p>
+                      </div>
+                    </div>
+                    {/* AAN 2025 */}
+                    <div className="space-y-3">
+                      <div className="aspect-[4/3] rounded-xl overflow-hidden bg-muted/30 border">
+                        <img src="/images/aan-2025-oral.jpg" alt="AAN 2025 Oral Platform Presentation - Ch4 Subtyping in PD-MCI" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center text-muted-foreground text-sm p-4 text-center">AAN 2025 Oral Presentation Photo<br/><span class="text-xs opacity-60 mt-1 block">Add image to /public/images/aan-2025-oral.jpg</span></div>'; }} />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-foreground">AAN Annual Meeting 2025</h4>
+                        <p className="text-sm text-muted-foreground">Oral Platform Presentation (S32.005) &mdash; San Diego, CA</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* ===== CITATION ===== */}
+            <div ref={sectionRefs.citation as React.RefObject<HTMLDivElement>} className="scroll-mt-8">
+              <Card className="medical-card border-0">
+                <CardHeader><CardTitle className="text-2xl">Citation</CardTitle></CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground">If you use this tool or framework in your research, please cite:</p>
+                  <div className="p-4 bg-muted/30 rounded-lg text-sm text-muted-foreground leading-relaxed">
+                    Negida A, Vohra HZ, Lageman SK, Mukhopadhyay N, Berman BD, Weintraub D, Barrett MJ. Parkinson's disease mild cognitive impairment with MRI evidence of cholinergic nucleus 4 degeneration: A new subtype? <em>Parkinsonism Relat Disord.</em> 2025;141:108072. doi: 10.1016/j.parkreldis.2025.108072
+                  </div>
+                  <div className="flex flex-wrap items-center justify-center gap-3">
+                    <PillLink href="https://doi.org/10.1016/j.parkreldis.2025.108072">Full Text (DOI)</PillLink>
+                    <PillLink href="https://pubmed.ncbi.nlm.nih.gov/41106089/">PubMed</PillLink>
+                    <PillLink href="https://github.com/Negidamd/ch4-subtyper">GitHub</PillLink>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* ===== AUTHOR ===== */}
+            <div className="p-8 medical-card rounded-xl text-center space-y-4">
+              <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Corresponding Author</p>
+              <h3 className="text-2xl font-bold medical-heading">Ahmed Negida, MD, PhD</h3>
+              <div className="space-y-1 text-muted-foreground">
+                <p className="font-medium">Parkinson and Movement Disorder Center</p>
+                <p>Department of Neurology, Virginia Commonwealth University</p>
+                <p>Richmond, VA</p>
+              </div>
+              <p className="text-sm text-muted-foreground font-mono pt-2">ahmed.negida@vcuhealth.org</p>
+              <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                <PillLink href="https://github.com/Negidamd/ch4-subtyper">GitHub</PillLink>
+                <PillLink href="https://pubmed.ncbi.nlm.nih.gov/?term=negida+a&sort=date">PubMed Profile</PillLink>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
