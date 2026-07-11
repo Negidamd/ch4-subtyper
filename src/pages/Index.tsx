@@ -543,14 +543,20 @@ const Index = () => {
               </div>
             </div>
 
-            {/* ===== FOOTER / DISCLAIMER ===== */}
-            <footer className="mt-2 pt-6 border-t border-border/50 text-center text-xs text-muted-foreground space-y-2">
-              <p className="max-w-3xl mx-auto leading-relaxed">This tool is provided for <strong>research and clinical-decision support</strong> only. It is not a diagnostic device and should not be the sole basis for clinical decisions. Subtype assignments reflect a normative model derived from the PPMI cohort and may not generalize to all populations. Use clinical judgment.</p>
-              <p>&copy; 2026 Ahmed Negida, MD, PhD &middot; Parkinson &amp; Movement Disorder Center, Virginia Commonwealth University &middot; <a href="https://negidamd.github.io/" className="text-primary no-underline hover:underline">negidamd.github.io</a></p>
-            </footer>
+            {/* ===== TOOL DISCLAIMER ===== */}
+            <p className="mt-2 pt-6 border-t border-border/50 text-center text-xs text-muted-foreground max-w-3xl mx-auto leading-relaxed">This tool is provided for <strong>research and clinical-decision support</strong> only. It is not a diagnostic device and should not be the sole basis for clinical decisions. Subtype assignments reflect a normative model derived from the PPMI cohort and may not generalize to all populations. Use clinical judgment.</p>
 
           </div>
         </div>
+
+        {/* ===== SITE FOOTER ===== */}
+        <footer className="bg-[#162e51] text-center px-6 py-10 text-sm leading-relaxed">
+          <p className="max-w-2xl mx-auto text-white/85">&copy; 2026 Ahmed Negida, MD, PhD &middot; Parkinson's &amp; Movement Disorders Center, Department of Neurology, Virginia Commonwealth University, Richmond, VA</p>
+          <p className="max-w-2xl mx-auto mt-1.5 text-xs text-white/60">A personal academic website &mdash; the tools and views presented here are the author's own and are not official products of, or endorsed by, Virginia Commonwealth University.</p>
+          <p className="mt-2 text-white/85">
+            <a href="https://negidamd.github.io/" className="text-[#73b3e7] no-underline hover:underline">Main site</a> &middot; <a href="https://negidamd.github.io/pd-subtyping.html" className="text-[#73b3e7] no-underline hover:underline">PD Subtyping</a> &middot; <a href="https://negidamd.github.io/data-driven-pd-subtype-calculator/" className="text-[#73b3e7] no-underline hover:underline">Data-driven calculator</a> &middot; <a href="https://negidamd.github.io/ch4-subtyper/" className="text-[#73b3e7] no-underline hover:underline">Ch4 calculator</a>
+          </p>
+        </footer>
       </div>
     </div>
   );
