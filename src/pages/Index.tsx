@@ -170,29 +170,29 @@ const Index = () => {
         </nav>
 
         {/* ===== HERO ===== */}
-        <div className="px-6 pt-10 pb-8">
-          <div className="max-w-5xl mx-auto text-center space-y-5 animate-fade-in">
-            <img src={`${import.meta.env.BASE_URL}lovable-uploads/c42099f0-ebe0-4830-b8bf-202f00856c9b.png`} alt="Ch4 Brain Region" className="w-20 h-20 mx-auto object-contain animate-pulse-glow" />
-            <h1 className="text-4xl lg:text-5xl font-bold medical-heading">
+        <div className="bg-gradient-to-br from-[#162e51] via-[#1a4480] to-[#205493] text-white">
+          <div className="max-w-5xl mx-auto text-center px-6 pt-12 pb-11 space-y-5 animate-fade-in">
+            <img src={`${import.meta.env.BASE_URL}lovable-uploads/c42099f0-ebe0-4830-b8bf-202f00856c9b.png`} alt="Ch4 Brain Region" className="w-20 h-20 mx-auto object-contain rounded-lg ring-1 ring-white/15" />
+            <h1 className="text-4xl lg:text-5xl font-black font-serif tracking-tight">
               Cholinergic Subtyping of PD-MCI
             </h1>
-            <p className="text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            <p className="text-lg lg:text-xl text-white/85 max-w-3xl mx-auto leading-relaxed">
               A novel MRI-based framework for subtyping Parkinson's disease with mild cognitive impairment by cholinergic nucleus 4 (Ch4) degeneration
             </p>
             <div className="flex justify-center">
-              <a href="https://doi.org/10.1016/j.parkreldis.2025.108072" target="_blank" rel="noopener" className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-semibold no-underline hover:bg-primary/15 transition-colors">
+              <a href="https://doi.org/10.1016/j.parkreldis.2025.108072" target="_blank" rel="noopener" className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-white text-sm font-semibold no-underline hover:bg-white/20 transition-colors">
                 Published in Parkinsonism &amp; Related Disorders &middot; 2025
               </a>
             </div>
-            <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground">
+            <div className="flex items-center justify-center gap-3 text-sm text-white/80">
               <span className="font-medium">Ahmed Negida, MD, PhD</span>
-              <span className="text-primary">|</span>
+              <span className="text-[#73b3e7]">|</span>
               <span>VCU Parkinson &amp; Movement Disorder Center</span>
             </div>
             {/* Nav pills */}
             <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
               {NAV_ITEMS.map(item => (
-                <button key={item.id} onClick={() => scrollToSection(item.id)} className="px-4 py-2 text-xs font-semibold rounded-full border border-border/50 hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-all">
+                <button key={item.id} onClick={() => scrollToSection(item.id)} className="px-4 py-2 text-xs font-semibold rounded-full border border-white/25 text-white/90 hover:bg-white/10 hover:text-white hover:border-white/40 transition-all">
                   {item.label}
                 </button>
               ))}
@@ -231,13 +231,14 @@ const Index = () => {
                 <CardContent>
                   <div className="grid sm:grid-cols-2 gap-4">
                     {[
-                      { title: 'Distinct Clinical Profile', desc: 'PD-MCI patients with Low Ch4 GMD have significantly worse MDS-UPDRS total and subscale scores, greater autonomic dysfunction, and reduced olfaction (all P < 0.05).', color: 'bg-blue-500/10 border-blue-500/20' },
-                      { title: 'Faster Cognitive Decline', desc: 'The Low Ch4 GMD subgroup progresses significantly faster to cognitive milestones on Kaplan\u2013Meier survival analysis (log-rank P = 0.0017).', color: 'bg-red-500/10 border-red-500/20' },
-                      { title: 'Overlap with Diffuse Malignant PD', desc: '51.6% of Low Ch4 GMD patients were classified as diffuse malignant PD, compared with 23.4% of the Normal Ch4 GMD group (P < 0.01).', color: 'bg-amber-500/10 border-amber-500/20' },
-                      { title: 'Outperforms Existing Subtypes', desc: 'Ch4 subtyping provided greater prognostic accuracy for cognitive progression than tremor-dominant/PIGD, brain-first/body-first, and diffuse-malignant classifications.', color: 'bg-green-500/10 border-green-500/20' },
+                      { num: 'P < 0.05', title: 'Distinct Clinical Profile', desc: 'PD-MCI patients with Low Ch4 GMD have significantly worse MDS-UPDRS total and subscale scores, greater autonomic dysfunction, and reduced olfaction (all P < 0.05).', color: 'bg-blue-500/10 border-blue-500/20', numColor: 'text-blue-600' },
+                      { num: 'P = 0.0017', title: 'Faster Cognitive Decline', desc: 'The Low Ch4 GMD subgroup progresses significantly faster to cognitive milestones on Kaplan\u2013Meier survival analysis (log-rank P = 0.0017).', color: 'bg-red-500/10 border-red-500/20', numColor: 'text-red-600' },
+                      { num: '51.6% vs 23.4%', title: 'Overlap with Diffuse Malignant PD', desc: '51.6% of Low Ch4 GMD patients were classified as diffuse malignant PD, compared with 23.4% of the Normal Ch4 GMD group (P < 0.01).', color: 'bg-amber-500/10 border-amber-500/20', numColor: 'text-amber-600' },
+                      { num: 'Highest', title: 'Outperforms Existing Subtypes', desc: 'Ch4 subtyping provided greater prognostic accuracy for cognitive progression than tremor-dominant/PIGD, brain-first/body-first, and diffuse-malignant classifications.', color: 'bg-green-500/10 border-green-500/20', numColor: 'text-green-600' },
                     ].map(f => (
                       <div key={f.title} className={`p-5 rounded-xl border ${f.color}`}>
-                        <h4 className="font-semibold text-foreground mb-2">{f.title}</h4>
+                        <div className={`text-2xl font-black leading-none mb-2 ${f.numColor}`}>{f.num}</div>
+                        <h4 className="font-semibold text-foreground mb-1.5">{f.title}</h4>
                         <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
                       </div>
                     ))}
