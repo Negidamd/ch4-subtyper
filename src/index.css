@@ -17,10 +17,10 @@ All colors MUST be HSL. */
     --popover: 0 0% 100%;
     --popover-foreground: 215 25% 15%;
 
-    /* Medical Blue Primary */
-    --primary: 210 100% 40%;
+    /* Site navy-blue primary (matches negidamd.github.io #005ea2) */
+    --primary: 206 100% 32%;
     --primary-foreground: 0 0% 98%;
-    --primary-glow: 210 100% 50%;
+    --primary-glow: 208 82% 45%;
     
     /* Medical Secondary */
     --secondary: 210 20% 92%;
@@ -29,7 +29,7 @@ All colors MUST be HSL. */
     --muted: 210 15% 94%;
     --muted-foreground: 215 15% 45%;
 
-    --accent: 200 100% 45%;
+    --accent: 205 90% 42%;
     --accent-foreground: 0 0% 98%;
 
     /* Medical Alert Colors */
@@ -44,7 +44,7 @@ All colors MUST be HSL. */
 
     --border: 215 20% 88%;
     --input: 215 20% 88%;
-    --ring: 210 100% 40%;
+    --ring: 206 100% 32%;
 
     --radius: 0.75rem;
 
@@ -61,7 +61,7 @@ All colors MUST be HSL. */
     /* Sidebar */
     --sidebar-background: 210 20% 94%;
     --sidebar-foreground: 215 25% 15%;
-    --sidebar-primary: 210 100% 40%;
+    --sidebar-primary: 206 100% 32%;
     --sidebar-primary-foreground: 0 0% 98%;
     --sidebar-accent: 210 15% 90%;
     --sidebar-accent-foreground: 215 25% 15%;
@@ -141,7 +141,7 @@ All colors MUST be HSL. */
 
   /* Medical Typography */
   .medical-heading {
-    @apply font-semibold tracking-tight;
+    @apply font-serif font-black tracking-tight;
     background: var(--gradient-primary);
     -webkit-background-clip: text;
     background-clip: text;

@@ -153,6 +153,17 @@ const Index = () => {
       <div className="absolute inset-0 brain-bg pointer-events-none" />
       <div className="relative z-10">
 
+        {/* ===== SITE NAV ===== */}
+        <nav className="bg-[#162e51] text-white">
+          <div className="max-w-5xl mx-auto px-6 h-[52px] flex items-center gap-5">
+            <a href="https://negidamd.github.io/" className="font-extrabold text-base no-underline text-white">Ahmed <span className="text-[#73b3e7]">Negida</span></a>
+            <div className="ml-auto flex gap-5 text-sm font-semibold">
+              <a href="https://negidamd.github.io/pd-subtyping.html" className="text-white/90 hover:text-white no-underline">&larr; PD Subtyping</a>
+              <a href="https://negidamd.github.io/" className="text-white/90 hover:text-white no-underline">Main site</a>
+            </div>
+          </div>
+        </nav>
+
         {/* ===== HERO ===== */}
         <div className="px-6 pt-10 pb-8">
           <div className="max-w-5xl mx-auto text-center space-y-5 animate-fade-in">
