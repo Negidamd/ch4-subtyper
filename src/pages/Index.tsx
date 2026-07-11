@@ -142,6 +142,11 @@ const Index = () => {
     try { await navigator.clipboard.writeText(JSON.stringify(out, null, 2)); toast({ title: "JSON Copied", description: "Results copied to clipboard" }); } catch { toast({ title: "Copy Failed", description: "Unable to copy", variant: "destructive" }); }
   }, [inputs, computedResults, toast]);
 
+  const CITATION = "Negida A, Vohra HZ, Lageman SK, Mukhopadhyay N, Berman BD, Weintraub D, Barrett MJ. Parkinson's disease mild cognitive impairment with MRI evidence of cholinergic nucleus 4 degeneration: A new subtype? Parkinsonism Relat Disord. 2025;141:108072. doi:10.1016/j.parkreldis.2025.108072";
+  const handleCopyCitation = useCallback(async () => {
+    try { await navigator.clipboard.writeText(CITATION); toast({ title: "Citation copied", description: "Full reference copied to clipboard" }); } catch { toast({ title: "Copy failed", description: "Unable to copy", variant: "destructive" }); }
+  }, [toast]);
+
   // --- Helper: pill link ---
   const PillLink = ({ href, children }: { href: string; children: React.ReactNode }) => (
     <a href={href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold rounded-full transition-colors">{children}</a>
@@ -174,6 +179,11 @@ const Index = () => {
             <p className="text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
               A novel MRI-based framework for subtyping Parkinson's disease with mild cognitive impairment by cholinergic nucleus 4 (Ch4) degeneration
             </p>
+            <div className="flex justify-center">
+              <a href="https://doi.org/10.1016/j.parkreldis.2025.108072" target="_blank" rel="noopener" className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-semibold no-underline hover:bg-primary/15 transition-colors">
+                Published in Parkinsonism &amp; Related Disorders &middot; 2025
+              </a>
+            </div>
             <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground">
               <span className="font-medium">Ahmed Negida, MD, PhD</span>
               <span className="text-primary">|</span>
@@ -206,6 +216,9 @@ const Index = () => {
                   </p>
                   <p>
                     The work was first presented as a <strong>poster at the International Congress of Parkinson's Disease and Movement Disorders (MDS 2024)</strong>, then selected for an <strong>oral platform presentation at the American Academy of Neurology Annual Meeting (AAN 2025)</strong>, covered by <strong>Neurology Today</strong>, and published as a full article in <strong><em>Parkinsonism &amp; Related Disorders</em></strong>.
+                  </p>
+                  <p>
+                    This cholinergic-imaging line is one front of a broader effort to subtype Parkinson's disease for precision trials &mdash; see the full <a href="https://negidamd.github.io/pd-subtyping.html" className="text-primary font-semibold hover:underline">PD subtyping program</a>, which also advances the data-driven DM/IM/MMP framework.
                   </p>
                 </CardContent>
               </Card>
@@ -505,6 +518,7 @@ const Index = () => {
                     Negida A, Vohra HZ, Lageman SK, Mukhopadhyay N, Berman BD, Weintraub D, Barrett MJ. Parkinson's disease mild cognitive impairment with MRI evidence of cholinergic nucleus 4 degeneration: A new subtype? <em>Parkinsonism Relat Disord.</em> 2025;141:108072. doi: 10.1016/j.parkreldis.2025.108072
                   </div>
                   <div className="flex flex-wrap items-center justify-center gap-3">
+                    <button onClick={handleCopyCitation} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground hover:opacity-90 text-xs font-semibold rounded-full transition-opacity">Copy citation</button>
                     <PillLink href="https://doi.org/10.1016/j.parkreldis.2025.108072">Full Text (DOI)</PillLink>
                     <PillLink href="https://pubmed.ncbi.nlm.nih.gov/41106089/">PubMed</PillLink>
                     <PillLink href="https://github.com/Negidamd/ch4-subtyper">GitHub</PillLink>
@@ -528,6 +542,12 @@ const Index = () => {
                 <PillLink href="https://pubmed.ncbi.nlm.nih.gov/?term=negida+a&sort=date">PubMed Profile</PillLink>
               </div>
             </div>
+
+            {/* ===== FOOTER / DISCLAIMER ===== */}
+            <footer className="mt-2 pt-6 border-t border-border/50 text-center text-xs text-muted-foreground space-y-2">
+              <p className="max-w-3xl mx-auto leading-relaxed">This tool is provided for <strong>research and clinical-decision support</strong> only. It is not a diagnostic device and should not be the sole basis for clinical decisions. Subtype assignments reflect a normative model derived from the PPMI cohort and may not generalize to all populations. Use clinical judgment.</p>
+              <p>&copy; 2026 Ahmed Negida, MD, PhD &middot; Parkinson &amp; Movement Disorder Center, Virginia Commonwealth University &middot; <a href="https://negidamd.github.io/" className="text-primary no-underline hover:underline">negidamd.github.io</a></p>
+            </footer>
 
           </div>
         </div>
