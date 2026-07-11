@@ -19,7 +19,9 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				'inter': ['Inter', 'sans-serif'],
+				'sans': ['Public Sans', 'system-ui', 'sans-serif'],
+				'inter': ['Public Sans', 'system-ui', 'sans-serif'],
+				'serif': ['Merriweather', 'Georgia', 'serif'],
 				'mono': ['JetBrains Mono', 'monospace'],
 			},
 			colors: {
