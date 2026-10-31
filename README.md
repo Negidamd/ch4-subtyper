@@ -136,7 +136,7 @@ If you use this tool in your research, please cite:
 
 ## Authors
 
-**Ahmed Negida, MD, PhD** (Corresponding Author)
+**Ahmed Negida, MBBCh, PhD** (Corresponding Author)
 Department of Neurology, Virginia Commonwealth University, Richmond, VA
 [ahmed.negida@vcuhealth.org](mailto:ahmed.negida@vcuhealth.org)
 
