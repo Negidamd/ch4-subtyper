@@ -172,7 +172,7 @@ const Index = () => {
         {/* ===== HERO ===== */}
         <div className="bg-gradient-to-br from-[#162e51] via-[#1a4480] to-[#205493] text-white">
           <div className="max-w-5xl mx-auto text-center px-6 pt-12 pb-11 space-y-5 animate-fade-in">
-            <img src={`${import.meta.env.BASE_URL}lovable-uploads/c42099f0-ebe0-4830-b8bf-202f00856c9b.png`} alt="Ch4 Brain Region" className="w-20 h-20 mx-auto object-contain rounded-lg ring-1 ring-white/15" />
+            <img src={`${import.meta.env.BASE_URL}images/ch4-logo.png`} alt="Ch4 Brain Region" className="w-20 h-20 mx-auto object-contain rounded-lg ring-1 ring-white/15" />
             <h1 className="text-4xl lg:text-5xl font-black font-serif tracking-tight">
               Cholinergic Subtyping of PD-MCI
             </h1>

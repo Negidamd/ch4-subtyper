@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/lovable-uploads/c42099f0-ebe0-4830-b8bf-202f00856c9b.png" alt="Ch4 Brain Region" width="80" />
+  <img src="public/images/ch4-logo.png" alt="Ch4 Brain Region" width="80" />
 </p>
 
 <h1 align="center">PD-MCI Ch4 Subtyping Tool</h1>
